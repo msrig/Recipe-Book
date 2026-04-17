@@ -56,9 +56,8 @@ class RecipeSearch {
   renderRecipes() {
     if (!this.recipeGrid) return;
 
-    // Clear existing cards (except the script)
-    const cards = this.recipeGrid.querySelectorAll('.col-lg-4');
-    cards.forEach(card => card.remove());
+    // Clear existing cards
+    this.recipeGrid.innerHTML = '';
 
     if (this.recipes.length === 0) {
       // Show no results message
@@ -70,9 +69,10 @@ class RecipeSearch {
     }
 
     // Render recipe cards
-    this.recipes.forEach(recipe => {
+    this.recipes.forEach((recipe, index) => {
       const col = document.createElement('div');
       col.className = 'col-lg-4 col-md-6';
+      col.style.animationDelay = (index * 0.1) + 's';
       col.innerHTML = `
         <a href="${recipe.link}" class="text-decoration-none">
           <div class="card recipe-card h-100">
@@ -114,5 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (typeof recipes !== 'undefined') {
     const search = new RecipeSearch(recipes);
     search.init();
+    // Render all recipes on initial load
+    search.renderRecipes();
   }
 });

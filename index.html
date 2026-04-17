@@ -131,10 +131,7 @@
         }
 
         /* Recipe Grid */
-        .recipe-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 2rem;
+        .row.g-4 {
             margin-bottom: 3rem;
         }
 
@@ -365,7 +362,7 @@
     <!-- Main Content -->
     <main class="container">
         <!-- Recipe Grid -->
-        <div id="recipeGrid" class="recipe-grid">
+        <div id="recipeGrid" class="row g-4">
             <!-- Recipes will be inserted here by JavaScript -->
         </div>
     </main>
