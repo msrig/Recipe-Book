@@ -1,16 +1,12 @@
-from fastapi import APIRouter, HTTPException, status, Depends
-from fastapi.security import HTTPBearer, HTTPAuthCredentials
+from fastapi import APIRouter, HTTPException, status, Depends, Header
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from pydantic import BaseModel
 from typing import Optional
-import json
 
 from backend.config import settings
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
-
-security = HTTPBearer()
 
 class LoginRequest(BaseModel):
     username: str
@@ -36,9 +32,21 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     )
     return encoded_jwt
 
-async def verify_token(credentials: HTTPAuthCredentials = Depends(security)):
-    token = credentials.credentials
+async def verify_token(authorization: str = Header(None)):
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authorization header"
+        )
+
     try:
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication scheme"
+            )
+
         payload = jwt.decode(
             token,
             settings.jwt_secret_key,
@@ -55,6 +63,11 @@ async def verify_token(credentials: HTTPAuthCredentials = Depends(security)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token"
+        )
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authorization header"
         )
 
 @router.post("/login", response_model=LoginResponse)

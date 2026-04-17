@@ -1,11 +1,9 @@
-from fastapi import APIRouter, HTTPException, status, File, UploadFile, Depends
-from fastapi.security import HTTPBearer, HTTPAuthCredentials
+from fastapi import APIRouter, HTTPException, status, File, UploadFile, Depends, Header
 from typing import List
 from pathlib import Path
 from datetime import datetime
 import json
 import uuid
-from jose import JWTError, jwt
 
 from backend.models.recipe import Recipe, RecipeCreate, RecipeUpdate, RecipeDatabase, Country
 from backend.config import settings
@@ -14,7 +12,6 @@ from PIL import Image
 import io
 
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
-security = HTTPBearer()
 
 # Countries data with flag emojis
 COUNTRIES = [
