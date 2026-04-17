@@ -130,6 +130,71 @@
             50% { transform: translateY(-20px); }
         }
 
+        /* Filters Section */
+        .filters-section {
+            background-color: white;
+            padding: 2rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .filters-container {
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-label {
+            display: block;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: var(--accent-color);
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+        }
+
+        .filter-reset {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--neutral-color);
+            border: none;
+            border-radius: 0.5rem;
+            color: var(--accent-color);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-reset:hover {
+            background-color: #ddd;
+            transform: translateY(-2px);
+        }
+
         /* Recipe Grid */
         .row.g-4 {
             margin-bottom: 3rem;
@@ -356,6 +421,35 @@
             </div>
             <h1>Наши Лучшие Рецепты</h1>
             <p>Откройте для себя коллекцию проверенных и вкусных домашних блюд</p>
+        </div>
+    </section>
+
+    <!-- Filters Section -->
+    <section class="filters-section">
+        <div class="container">
+            <div class="filters-container">
+                <div class="filter-group">
+                    <label for="categoryFilter" class="filter-label">
+                        <i class="fas fa-filter"></i> Категория
+                    </label>
+                    <select id="categoryFilter" class="filter-select">
+                        <option value="">Все категории</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="countryFilter" class="filter-label">
+                        <i class="fas fa-globe"></i> Страна
+                    </label>
+                    <select id="countryFilter" class="filter-select">
+                        <option value="">Все страны</option>
+                    </select>
+                </div>
+
+                <button class="filter-reset" onclick="resetFilters()">
+                    <i class="fas fa-redo"></i> Сбросить фильтры
+                </button>
+            </div>
         </div>
     </section>
 
