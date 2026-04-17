@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создать рецепт - Админ-панель</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/css/style.css">
+    <style>
+        .form-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--light-bg);
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .form-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .form-section h3 i {
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-control {
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+            outline: none;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .image-preview {
+            margin-top: 1rem;
+            max-width: 300px;
+        }
+
+        .image-preview img {
+            width: 100%;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .ingredients-input {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .ingredients-input input {
+            flex: 1;
+        }
+
+        .ingredients-input button {
+            padding: 0.75rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+        }
+
+        .ingredient-item {
+            background: var(--light-bg);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ingredient-item button {
+            background: #dc3545;
+            border: none;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.3rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-submit {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .btn-submit:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-cancel {
+            background: var(--neutral-color);
+            color: var(--accent-color);
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel:hover {
+            background: #ddd;
+        }
+
+        .alert {
+            border-radius: 0.5rem;
+            border: none;
+        }
+
+        .loading {
+            display: none;
+        }
+
+        .spinner-border {
+            width: 1.5rem;
+            height: 1.5rem;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>
+                    <i class="fas fa-utensils"></i>
+                    Админка
+                </h2>
+            </div>
+
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/index.html">
+                        <i class="fas fa-home"></i>
+                        <span>Главная</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/admin/create-recipe.html">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Новый рецепт</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/index.html" onclick="showRecipes()">
+                        <i class="fas fa-list"></i>
+                        <span>Все рецепты</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="top-bar-left">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Создать новый рецепт</h1>
+                </div>
+                <div class="top-bar-right">
+                    <button class="btn-logout" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content">
+                <div id="alertContainer"></div>
+
+                <form id="recipeForm" onsubmit="handleCreateRecipe(event)" class="form-card">
+                    <!-- Basic Info Section -->
+                    <div class="form-section">
+                        <h3>
+                            <i class="fas fa-info-circle"></i>
+                            Основная информация
+                        </h3>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="title" class="form-label">Название (на русском) *</label>
+                                    <input
+                                        type="text"
+                                        id="title"
+                                        class="form-control"
+                                        placeholder="Например: Борщ украинский"
+                                        required
+                                    >
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="titleEn" class="form-label">Название (на английском) *</label>
+                                    <input
+                                        type="text"
+                                        id="titleEn"
+                                        class="form-control"
+                                        placeholder="Например: Ukrainian Borscht"
+                                        required
+                                    >
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description" class="form-label">Описание *</label>
+                            <textarea
+                                id="description"
+                                class="form-control"
+                                placeholder="Краткое описание рецепта"
+                                required
+                            ></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="category" class="form-label">Категория *</label>
+                                    <select id="category" class="form-control" required>
+                                        <option value="">Выберите категорию</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="country" class="form-label">Страна происхождения *</label>
+                                    <select id="country" class="form-control" required>
+                                        <option value="">Выберите страну</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ingredients Section -->
+                    <div class="form-section">
+                        <h3>
+                            <i class="fas fa-list"></i>
+                            Ингредиенты
+                        </h3>
+
+                        <div class="form-group">
+                            <label for="ingredientInput" class="form-label">Добавить ингредиент *</label>
+                            <div class="ingredients-input">
+                                <input
+                                    type="text"
+                                    id="ingredientInput"
+                                    class="form-control"
+                                    placeholder="Например: 500г помидоров"
+                                >
+                                <button type="button" class="btn-primary" onclick="addIngredient()" style="border: none; padding: 0.5rem 1rem;">
+                                    <i class="fas fa-plus"></i> Добавить
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="ingredientsList"></div>
+                    </div>
+
+                    <!-- Instructions Section -->
+                    <div class="form-section">
+                        <h3>
+                            <i class="fas fa-fire"></i>
+                            Приготовление
+                        </h3>
+
+                        <div class="form-group">
+                            <label for="preparation" class="form-label">Инструкции приготовления *</label>
+                            <textarea
+                                id="preparation"
+                                class="form-control"
+                                placeholder="Подробное описание процесса приготовления"
+                                required
+                            ></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Image Section -->
+                    <div class="form-section">
+                        <h3>
+                            <i class="fas fa-image"></i>
+                            Изображение рецепта
+                        </h3>
+
+                        <div class="form-group">
+                            <label for="imageInput" class="form-label">Загрузить фотографию *</label>
+                            <input
+                                type="file"
+                                id="imageInput"
+                                class="form-control"
+                                accept="image/*"
+                                required
+                            >
+                            <small class="text-muted">Рекомендуемый размер: 800x500px</small>
+                        </div>
+
+                        <div id="imagePreview" class="image-preview" style="display: none;">
+                            <img id="previewImg" alt="Превью">
+                        </div>
+                    </div>
+
+                    <!-- AI Processing Section -->
+                    <div class="form-section">
+                        <h3>
+                            <i class="fas fa-robot"></i>
+                            Обработка с помощью AI (опционально)
+                        </h3>
+
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input
+                                    type="checkbox"
+                                    id="useAI"
+                                    class="form-check-input"
+                                    checked
+                                >
+                                <label class="form-check-label" for="useAI">
+                                    Использовать Claude AI для форматирования и улучшения рецепта
+                                </label>
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                AI помощник автоматически улучшит формат ингредиентов, инструкций и добавит полезные советы.
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Submit Section -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn-submit">
+                            <span class="loading">
+                                <span class="spinner-border spinner-border-sm"></span>
+                                Создание...
+                            </span>
+                            <span class="submit-text">
+                                <i class="fas fa-save"></i> Создать рецепт
+                            </span>
+                        </button>
+                        <button type="button" class="btn-cancel" onclick="window.location.href='/admin/index.html'">
+                            <i class="fas fa-times"></i> Отмена
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="/admin/js/api-client.js"></script>
+    <script>
+        let ingredients = [];
+        let selectedCountry = null;
+
+        async function initForm() {
+            try {
+                // Check auth
+                await api.verifyToken();
+
+                // Load categories and countries
+                const [categories, countries] = await Promise.all([
+                    api.getCategories(),
+                    api.getCountries()
+                ]);
+
+                // Populate category select
+                const categorySelect = document.getElementById("category");
+                categories.categories.forEach(cat => {
+                    const option = document.createElement("option");
+                    option.value = cat;
+                    option.textContent = cat;
+                    categorySelect.appendChild(option);
+                });
+
+                // Populate country select
+                const countrySelect = document.getElementById("country");
+                countries.countries.forEach(country => {
+                    const option = document.createElement("option");
+                    option.value = JSON.stringify(country);
+                    option.textContent = `${country.flag} ${country.name}`;
+                    countrySelect.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error("Init error:", error);
+                window.location.href = "/admin/login.html";
+            }
+        }
+
+        function addIngredient() {
+            const input = document.getElementById("ingredientInput");
+            const ingredient = input.value.trim();
+
+            if (!ingredient) {
+                alert("Введите ингредиент");
+                return;
+            }
+
+            ingredients.push(ingredient);
+            input.value = "";
+            renderIngredients();
+        }
+
+        function removeIngredient(index) {
+            ingredients.splice(index, 1);
+            renderIngredients();
+        }
+
+        function renderIngredients() {
+            const list = document.getElementById("ingredientsList");
+            list.innerHTML = "";
+
+            ingredients.forEach((ing, index) => {
+                const div = document.createElement("div");
+                div.className = "ingredient-item";
+                div.innerHTML = `
+                    <span>${ing}</span>
+                    <button type="button" onclick="removeIngredient(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        document.getElementById("imageInput").addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    document.getElementById("previewImg").src = event.target.result;
+                    document.getElementById("imagePreview").style.display = "block";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById("country").addEventListener("change", (e) => {
+            if (e.target.value) {
+                selectedCountry = JSON.parse(e.target.value);
+            }
+        });
+
+        async function handleCreateRecipe(event) {
+            event.preventDefault();
+
+            if (ingredients.length === 0) {
+                alert("Добавьте хотя бы один ингредиент");
+                return;
+            }
+
+            if (!selectedCountry) {
+                alert("Выберите страну происхождения");
+                return;
+            }
+
+            const submitBtn = event.target.querySelector("button[type='submit']");
+            const loading = submitBtn.querySelector(".loading");
+            const submitText = submitBtn.querySelector(".submit-text");
+
+            submitBtn.disabled = true;
+            loading.style.display = "inline";
+            submitText.style.display = "none";
+
+            try {
+                // Prepare recipe data
+                const recipeData = {
+                    title: document.getElementById("title").value,
+                    titleEn: document.getElementById("titleEn").value,
+                    category: document.getElementById("category").value,
+                    country_origin: selectedCountry.name,
+                    country_code: selectedCountry.code,
+                    description: document.getElementById("description").value,
+                    ingredients: ingredients,
+                    preparation: document.getElementById("preparation").value
+                };
+
+                // Create recipe
+                const recipe = await api.createRecipe(recipeData);
+
+                // Upload image
+                const imageFile = document.getElementById("imageInput").files[0];
+                if (imageFile) {
+                    await api.uploadImage(recipe.id, imageFile);
+                }
+
+                // Success
+                const alertContainer = document.getElementById("alertContainer");
+                alertContainer.innerHTML = `
+                    <div class="alert alert-success" role="alert">
+                        <i class="fas fa-check-circle"></i> Рецепт создан успешно! Перенаправление...
+                    </div>
+                `;
+
+                setTimeout(() => {
+                    window.location.href = "/admin/index.html";
+                }, 2000);
+
+            } catch (error) {
+                const alertContainer = document.getElementById("alertContainer");
+                alertContainer.innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-circle"></i> Ошибка: ${error.message}
+                    </div>
+                `;
+
+                submitBtn.disabled = false;
+                loading.style.display = "none";
+                submitText.style.display = "inline";
+
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('open');
+        }
+
+        function logout() {
+            api.clearToken();
+            window.location.href = "/admin/login.html";
+        }
+
+        // Initialize on page load
+        window.addEventListener("DOMContentLoaded", initForm);
+    </script>
+</body>
+</html>
