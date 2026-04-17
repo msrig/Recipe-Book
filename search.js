@@ -1,6 +1,6 @@
 // Search and filter functionality for recipes
 class RecipeSearch {
-  constructor(recipes) {
+  constructor(recipes = []) {
     this.recipes = recipes;
     this.originalRecipes = [...recipes];
     this.searchInput = null;
@@ -11,8 +11,30 @@ class RecipeSearch {
     this.currentCountry = null;
   }
 
+  // Load recipes from API or fallback to static data
+  async loadRecipes() {
+    try {
+      const response = await fetch('http://localhost:8000/api/recipes/');
+      if (!response.ok) throw new Error('API request failed');
+      const data = await response.json();
+      this.recipes = data.recipes || [];
+      this.originalRecipes = [...this.recipes];
+      console.log('Recipes loaded from API:', this.recipes.length);
+    } catch (error) {
+      console.warn('Failed to load from API, using static data:', error);
+      // Fall back to static recipes-data.js if available
+      if (typeof recipes !== 'undefined') {
+        this.recipes = recipes;
+        this.originalRecipes = [...recipes];
+      }
+    }
+  }
+
   // Initialize search and filter functionality
-  init() {
+  async init() {
+    // Load recipes from API first
+    await this.loadRecipes();
+
     this.searchInput = document.getElementById('searchInput');
     this.recipeGrid = document.getElementById('recipeGrid');
     this.categoryFilter = document.getElementById('categoryFilter');
@@ -37,6 +59,9 @@ class RecipeSearch {
       this.countryFilter.addEventListener('change', (e) => this.handleCountryFilter(e));
       this.loadCountries();
     }
+
+    // Render recipes after initialization
+    this.renderRecipes();
   }
 
   // Load categories from recipes
@@ -44,6 +69,11 @@ class RecipeSearch {
     const categories = [...new Set(this.originalRecipes.map(r => r.category))].sort();
 
     const categorySelect = document.getElementById('categoryFilter');
+    // Clear existing options except the first "All categories" option
+    while (categorySelect.options.length > 1) {
+      categorySelect.remove(1);
+    }
+
     categories.forEach(cat => {
       const option = document.createElement('option');
       option.value = cat;
@@ -65,6 +95,11 @@ class RecipeSearch {
     ).sort((a, b) => a.name.localeCompare(b.name));
 
     const countrySelect = document.getElementById('countryFilter');
+    // Clear existing options except the first "All countries" option
+    while (countrySelect.options.length > 1) {
+      countrySelect.remove(1);
+    }
+
     uniqueCountries.forEach(country => {
       const option = document.createElement('option');
       option.value = country.code;
@@ -108,7 +143,7 @@ class RecipeSearch {
           recipe.category.toLowerCase(),
           recipe.description.toLowerCase(),
           ...recipe.ingredients.map(ing => ing.toLowerCase()),
-          ...recipe.keywords
+          ...(recipe.keywords || [])
         ].join(' ');
 
         if (!searchText.includes(searchQuery)) {
@@ -210,13 +245,11 @@ class RecipeSearch {
 }
 
 // Initialize search when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-  if (typeof recipes !== 'undefined') {
-    const search = new RecipeSearch(recipes);
-    search.init();
-    // Render all recipes on initial load
-    search.renderRecipes();
-  }
+document.addEventListener('DOMContentLoaded', async function() {
+  const search = new RecipeSearch();
+  await search.init();
+  // Store global reference for resetFilters function
+  window.search = search;
 });
 
 // Reset filters function
