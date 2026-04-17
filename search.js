@@ -204,7 +204,7 @@ class RecipeSearch {
       const countryFlag = this.getCountryFlag(recipe.country_code);
 
       col.innerHTML = `
-        <a href="${recipe.link}" class="text-decoration-none">
+        <a href="#recipe-${recipe.id}" class="text-decoration-none" onclick="event.preventDefault(); showRecipeDetail('${recipe.id}')">
           <div class="card recipe-card h-100">
             <div class="recipe-image-container">
               <img src="${recipe.image}" class="card-img-top recipe-card-img" alt="${recipe.title}">
@@ -251,6 +251,69 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Store global reference for resetFilters function
   window.search = search;
 });
+
+// Show recipe detail
+function showRecipeDetail(recipeId) {
+  if (!window.search) return;
+
+  const recipe = window.search.originalRecipes.find(r => r.id === recipeId);
+  if (!recipe) return;
+
+  const countryFlag = window.search.getCountryFlag(recipe.country_code);
+
+  let ingredientsList = '';
+  recipe.ingredients.forEach(ing => {
+    ingredientsList += `<li class="list-group-item">${ing}</li>`;
+  });
+
+  const modal = document.createElement('div');
+  modal.className = 'modal fade';
+  modal.id = `modal-${recipeId}`;
+  modal.setAttribute('tabindex', '-1');
+  modal.innerHTML = `
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">${recipe.title}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <img src="${recipe.image}" class="img-fluid rounded mb-3" alt="${recipe.title}" style="max-height: 400px; object-fit: cover; width: 100%;">
+
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+            <span style="font-size: 2rem;">${countryFlag}</span>
+            <div>
+              <h6 class="text-muted mb-0">${recipe.country_origin}</h6>
+              <p class="text-muted small mb-0">${recipe.category}</p>
+            </div>
+          </div>
+
+          <p class="text-muted">${recipe.description}</p>
+
+          <h6 class="mt-4 mb-3"><strong>Ингредиенты:</strong></h6>
+          <ul class="list-group mb-4">
+            ${ingredientsList}
+          </ul>
+
+          <h6 class="mb-3"><strong>Приготовление:</strong></h6>
+          <p style="white-space: pre-wrap; line-height: 1.6;">${recipe.preparation}</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  const bootstrapModal = new bootstrap.Modal(modal);
+  bootstrapModal.show();
+
+  // Clean up modal after it's hidden
+  modal.addEventListener('hidden.bs.modal', () => {
+    modal.remove();
+  });
+}
 
 // Reset filters function
 function resetFilters() {
