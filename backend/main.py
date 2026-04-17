@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
@@ -38,15 +39,31 @@ if images_dir.exists():
 
 @app.get("/")
 async def root():
-    return {
-        "message": "Recipe Book API",
-        "docs": "/docs",
-        "admin": "/admin"
-    }
+    index_file = base_dir / "index.html"
+    if index_file.exists():
+        return FileResponse(str(index_file))
+    return {"message": "Recipe Book API", "docs": "/docs", "admin": "/admin"}
 
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+@app.get("/{page_name}.html")
+async def static_html_page(page_name: str):
+    page = base_dir / f"{page_name}.html"
+    if page.exists() and page.is_file():
+        return FileResponse(str(page))
+    return {"detail": "Page not found"}
+
+@app.get("/{asset_name}.js")
+async def static_js_asset(asset_name: str):
+    if asset_name not in {"recipes-data", "search", "country-utils"}:
+        return {"detail": "Asset not found"}
+
+    asset = base_dir / f"{asset_name}.js"
+    if asset.exists() and asset.is_file():
+        return FileResponse(str(asset), media_type="application/javascript")
+    return {"detail": "Asset not found"}
 
 if __name__ == "__main__":
     import uvicorn

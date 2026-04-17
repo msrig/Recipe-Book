@@ -163,6 +163,7 @@
         </main>
     </div>
 
+    <script src="/country-utils.js"></script>
     <script src="/admin/js/api-client.js"></script>
     <script>
         // Initialize dashboard
@@ -309,14 +310,7 @@
         }
 
         function findCountryFlag(countryCode) {
-            // Simple flag emoji mapping
-            const flags = {
-                'UA': '🇺🇦', 'RU': '🇷🇺', 'US': '🇺🇸', 'IT': '🇮🇹',
-                'FR': '🇫🇷', 'JP': '🇯🇵', 'CN': '🇨🇳', 'MX': '🇲🇽',
-                'IN': '🇮🇳', 'TH': '🇹🇭', 'DE': '🇩🇪', 'ES': '🇪🇸',
-                'GR': '🇬🇷', 'PL': '🇵🇱', 'HU': '🇭🇺'
-            };
-            return flags[countryCode] || '';
+            return flagFromCountryCode(countryCode);
         }
 
         function toggleSidebar() {

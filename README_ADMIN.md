@@ -18,7 +18,8 @@ pip install -r requirements.txt
 Отредактируйте файл `backend/.env`:
 
 ```
-CLAUDE_API_KEY=sk-ant-... (ваш ключ Claude API)
+OPENAI_API_KEY=sk-... (ваш ключ OpenAI API)
+OPENAI_MODEL=gpt-5.2
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=admin123
 JWT_SECRET_KEY=ваш-секретный-ключ
@@ -56,6 +57,7 @@ uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 - `GET /api/recipes/` - Получить все рецепты (с фильтрацией)
 - `GET /api/recipes/{recipe_id}` - Получить рецепт
 - `POST /api/recipes/` - Создать рецепт
+- `POST /api/recipes/ai/polish` - Вычитать рецепт через ChatGPT перед сохранением
 - `PUT /api/recipes/{recipe_id}` - Обновить рецепт
 - `DELETE /api/recipes/{recipe_id}` - Удалить рецепт
 - `POST /api/recipes/{recipe_id}/image` - Загрузить изображение
@@ -79,7 +81,7 @@ backend/
 │   ├── auth.py         # Аутентификация
 │   └── recipes.py      # Рецепты CRUD
 └── agents/
-    └── recipe_agent.py # Claude AI агент
+    └── recipe_agent.py # OpenAI агент для вычитки рецептов
 
 admin/
 ├── login.html          # Страница входа

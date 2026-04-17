@@ -300,6 +300,17 @@
                                     <select id="country" class="form-control" required>
                                         <option value="">Выберите страну</option>
                                     </select>
+                                    <div id="customCountryGroup" style="display: none; margin-top: 0.75rem;">
+                                        <input
+                                            type="text"
+                                            id="customCountry"
+                                            class="form-control"
+                                            placeholder="Например: Корея"
+                                        >
+                                        <small id="countryHint" class="text-muted d-block mt-2">
+                                            Введите страну, флаг подставится автоматически, если страна распознана.
+                                        </small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -400,6 +411,7 @@
         </main>
     </div>
 
+    <script src="/country-utils.js"></script>
     <script src="/admin/js/api-client.js"></script>
     <script>
         let ingredients = [];
@@ -450,6 +462,7 @@
 
                 // Populate country select
                 const countrySelect = document.getElementById("country");
+                let matchedExistingCountry = false;
                 countries.countries.forEach(country => {
                     const option = document.createElement("option");
                     option.value = JSON.stringify(country);
@@ -457,9 +470,27 @@
                     if (country.code === recipe.country_code) {
                         option.selected = true;
                         selectedCountry = country;
+                        matchedExistingCountry = true;
                     }
                     countrySelect.appendChild(option);
                 });
+
+                const otherOption = document.createElement("option");
+                otherOption.value = "__custom__";
+                otherOption.textContent = "Нет в списке";
+                countrySelect.appendChild(otherOption);
+
+                if (!matchedExistingCountry && recipe.country_origin) {
+                    otherOption.selected = true;
+                    document.getElementById("customCountryGroup").style.display = "block";
+                    document.getElementById("customCountry").value = recipe.country_origin;
+                    selectedCountry = {
+                        name: recipe.country_origin,
+                        code: recipe.country_code || "",
+                        flag: flagFromCountryCode(recipe.country_code)
+                    };
+                    document.getElementById("countryHint").textContent = `${selectedCountry.flag} ${selectedCountry.name}`;
+                }
 
                 // Show current image
                 if (recipe.image) {
@@ -522,8 +553,28 @@
         });
 
         document.getElementById("country").addEventListener("change", (e) => {
-            if (e.target.value) {
+            const customGroup = document.getElementById("customCountryGroup");
+            if (e.target.value === "__custom__") {
+                selectedCountry = null;
+                customGroup.style.display = "block";
+                document.getElementById("customCountry").focus();
+            } else if (e.target.value) {
                 selectedCountry = JSON.parse(e.target.value);
+                customGroup.style.display = "none";
+            } else {
+                selectedCountry = null;
+                customGroup.style.display = "none";
+            }
+        });
+
+        document.getElementById("customCountry").addEventListener("input", (e) => {
+            selectedCountry = makeCountryFromInput(e.target.value);
+            const hint = document.getElementById("countryHint");
+
+            if (selectedCountry) {
+                hint.textContent = `${selectedCountry.flag} ${selectedCountry.name}`;
+            } else {
+                hint.textContent = "Введите страну, флаг подставится автоматически, если страна распознана.";
             }
         });
 

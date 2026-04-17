@@ -1,13 +1,21 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
 from functools import lru_cache
 from pathlib import Path
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=Path(__file__).parent / ".env",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
     app_name: str = "Recipe Book Admin API"
     debug: bool = True
 
     # API Keys
-    claude_api_key: str = ""
+    openai_api_key: str = ""
+    openai_model: str = "gpt-5.2"
 
     # JWT Settings
     jwt_secret_key: str = "your-secret-key-change-in-production"
@@ -25,9 +33,12 @@ class Settings(BaseSettings):
     admin_username: str = "admin"
     admin_password: str = "admin123"  # Change this!
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
+    @field_validator("debug", mode="before")
+    @classmethod
+    def parse_debug(cls, value):
+        if isinstance(value, str) and value.lower() in {"release", "prod", "production"}:
+            return False
+        return value
 
 @lru_cache()
 def get_settings():

@@ -72,8 +72,8 @@
       "title": "Тонкие Блины на молоке",
       "titleEn": "Thin Milk Pancakes",
       "category": "Breakfast",
-      "country_origin": "Russia",
-      "country_code": "RU",
+      "country_origin": "Ukraine",
+      "country_code": "UA",
       "description": "Тонкие и нежные блины из молока, яиц и муки",
       "ingredients": [
         "Молоко - 500 мл",
@@ -86,15 +86,15 @@
       "preparation": "Взбейте яйца с сахаром и солью. Влейте половину молока, перемешайте. Постепенно всыпьте просеянную муку, хорошо размешивая, чтобы не было комков. Добавьте оставшееся молоко и растительное масло. Тесто должно получиться жидким. Дайте тесту постоять 15-20 минут. Разогрейте сковороду, смажьте маслом (только перед первым блином). Выпекайте тонкие блинчики с двух сторон до золотистого цвета. Подавайте с вареньем, сметаной, медом или любой другой начинкой.",
       "image": "images/recipe4.jpg",
       "created_at": "2026-04-17T12:00:00Z",
-      "updated_at": "2026-04-17T12:00:00Z"
+      "updated_at": "2026-04-17T18:27:05.661880"
     },
     {
       "id": "recipe_5",
       "title": "Куриный суп с лапшой",
       "titleEn": "Chicken Noodle Soup",
       "category": "Soup",
-      "country_origin": "Russia",
-      "country_code": "RU",
+      "country_origin": "Ukraine",
+      "country_code": "UA",
       "description": "Теплый и питательный суп из курицы с лапшой и овощами",
       "ingredients": [
         "Курица (голень или бедро) - 400 грамм",
@@ -108,15 +108,15 @@
       "preparation": "Курицу залейте водой, доведите до кипения, снимите пену и варите на медленном огне 30-40 минут. Выньте курицу, отделите мясо от костей. Бульон процедите. Картофель нарежьте кубиками, морковь натрите, лук мелко нарежьте. В кипящий бульон положите картофель. Обжарьте лук и морковь на растительном масле до золотистого цвета. Добавьте в суп. Когда картофель будет почти готов, верните в кастрюлю мясо и всыпьте вермишель. Посолите, поперчите, добавьте лавровый лист. Варите еще 3-5 минут до готовности вермишели. Перед подачей посыпьте свежей зеленью.",
       "image": "images/recipe5.jpg",
       "created_at": "2026-04-17T12:00:00Z",
-      "updated_at": "2026-04-17T12:00:00Z"
+      "updated_at": "2026-04-17T18:33:34.225130"
     },
     {
       "id": "recipe_6",
       "title": "Шоколадный торт \"Прага\"",
       "titleEn": "Prague Chocolate Cake",
       "category": "Dessert",
-      "country_origin": "Czechia",
-      "country_code": "CZ",
+      "country_origin": "Thailand",
+      "country_code": "TH",
       "description": "Многослойный шоколадный торт с кремом и глазурью",
       "ingredients": [
         "Яйца - 5 штук",
@@ -131,7 +131,45 @@
       "preparation": "Испеките шоколадный бисквит. Остудите и разрежьте на три коржа. Приготовьте крем: взбейте размягченное масло, постепенно добавляя сгущенное молоко с какао и желтком. Прослоите коржи кремом. Верхний корж и бока торта смажьте тонким слоем абрикосового джема. Растопите шоколад со сливочным маслом на водяной бане до получения однородной глазури. Покройте торт шоколадной глазурью. Поставьте торт в холодильник на несколько часов для пропитки. Украсьте по желанию и подавайте.",
       "image": "images/recipe6.jpg",
       "created_at": "2026-04-17T12:00:00Z",
-      "updated_at": "2026-04-17T12:00:00Z"
+      "updated_at": "2026-04-17T18:50:20.789448"
+    },
+    {
+      "id": "recipe_c30751df",
+      "title": "Пельмени",
+      "titleEn": "Pirogi",
+      "category": "Main Course",
+      "country_origin": "Ukraine",
+      "country_code": "UA",
+      "description": "Пельмени для заморозки",
+      "ingredients": [
+        "Фарш",
+        "Мука",
+        "Яйцо",
+        "Вода",
+        "Масло"
+      ],
+      "preparation": "Смешать и залепить",
+      "image": "images/recipe_c30751df.jpg",
+      "created_at": "2026-04-17T18:31:51.100628",
+      "updated_at": "2026-04-17T18:31:51.100646"
+    },
+    {
+      "id": "recipe_1cb71365",
+      "title": "Кимчи",
+      "titleEn": "Kimchi",
+      "category": "Main Course",
+      "country_origin": "South Korea",
+      "country_code": "KR",
+      "description": "Капуста квашенная по корейски",
+      "ingredients": [
+        "Пекинская капуста 1 кг",
+        "Дайкон 200 гр",
+        "Морковь 200 гр"
+      ],
+      "preparation": "Смешать и есть",
+      "image": "images/recipe_1cb71365.jpg",
+      "created_at": "2026-04-17T19:44:01.439644",
+      "updated_at": "2026-04-17T19:44:01.439674"
     }
   ],
   "categories": [
@@ -142,24 +180,89 @@
     "Appetizer",
     "Dessert",
     "Breakfast",
-    "Beverage"
+    "Beverage",
+    "sdfa"
   ],
   "countries": [
-    {"name": "Ukraine", "code": "UA", "flag": "🇺🇦"},
-    {"name": "Russia", "code": "RU", "flag": "🇷🇺"},
-    {"name": "USA", "code": "US", "flag": "🇺🇸"},
-    {"name": "Italy", "code": "IT", "flag": "🇮🇹"},
-    {"name": "France", "code": "FR", "flag": "🇫🇷"},
-    {"name": "Japan", "code": "JP", "flag": "🇯🇵"},
-    {"name": "China", "code": "CN", "flag": "🇨🇳"},
-    {"name": "Mexico", "code": "MX", "flag": "🇲🇽"},
-    {"name": "India", "code": "IN", "flag": "🇮🇳"},
-    {"name": "Thailand", "code": "TH", "flag": "🇹🇭"},
-    {"name": "Germany", "code": "DE", "flag": "🇩🇪"},
-    {"name": "Spain", "code": "ES", "flag": "🇪🇸"},
-    {"name": "Greece", "code": "GR", "flag": "🇬🇷"},
-    {"name": "Poland", "code": "PL", "flag": "🇵🇱"},
-    {"name": "Hungary", "code": "HU", "flag": "🇭🇺"},
-    {"name": "Czechia", "code": "CZ", "flag": "🇨🇿"}
+    {
+      "name": "Ukraine",
+      "code": "UA",
+      "flag": "🇺🇦"
+    },
+    {
+      "name": "Russia",
+      "code": "RU",
+      "flag": "🇷🇺"
+    },
+    {
+      "name": "USA",
+      "code": "US",
+      "flag": "🇺🇸"
+    },
+    {
+      "name": "Italy",
+      "code": "IT",
+      "flag": "🇮🇹"
+    },
+    {
+      "name": "France",
+      "code": "FR",
+      "flag": "🇫🇷"
+    },
+    {
+      "name": "Japan",
+      "code": "JP",
+      "flag": "🇯🇵"
+    },
+    {
+      "name": "China",
+      "code": "CN",
+      "flag": "🇨🇳"
+    },
+    {
+      "name": "Mexico",
+      "code": "MX",
+      "flag": "🇲🇽"
+    },
+    {
+      "name": "India",
+      "code": "IN",
+      "flag": "🇮🇳"
+    },
+    {
+      "name": "Thailand",
+      "code": "TH",
+      "flag": "🇹🇭"
+    },
+    {
+      "name": "Germany",
+      "code": "DE",
+      "flag": "🇩🇪"
+    },
+    {
+      "name": "Spain",
+      "code": "ES",
+      "flag": "🇪🇸"
+    },
+    {
+      "name": "Greece",
+      "code": "GR",
+      "flag": "🇬🇷"
+    },
+    {
+      "name": "Poland",
+      "code": "PL",
+      "flag": "🇵🇱"
+    },
+    {
+      "name": "Hungary",
+      "code": "HU",
+      "flag": "🇭🇺"
+    },
+    {
+      "name": "Czechia",
+      "code": "CZ",
+      "flag": "🇨🇿"
+    }
   ]
 }

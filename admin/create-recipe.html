@@ -296,6 +296,17 @@
                                     <select id="country" class="form-control" required>
                                         <option value="">Выберите страну</option>
                                     </select>
+                                    <div id="customCountryGroup" style="display: none; margin-top: 0.75rem;">
+                                        <input
+                                            type="text"
+                                            id="customCountry"
+                                            class="form-control"
+                                            placeholder="Например: Корея"
+                                        >
+                                        <small id="countryHint" class="text-muted d-block mt-2">
+                                            Введите страну, флаг подставится автоматически, если страна распознана.
+                                        </small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -384,11 +395,11 @@
                                     checked
                                 >
                                 <label class="form-check-label" for="useAI">
-                                    Использовать Claude AI для форматирования и улучшения рецепта
+                                    Использовать ChatGPT для аккуратной вычитки рецепта
                                 </label>
                             </div>
                             <small class="text-muted d-block mt-2">
-                                AI помощник автоматически улучшит формат ингредиентов, инструкций и добавит полезные советы.
+                                AI исправит орфографию и сделает описание грамотнее, не добавляя и не удаляя смысл.
                             </small>
                         </div>
                     </div>
@@ -413,6 +424,7 @@
         </main>
     </div>
 
+    <script src="/country-utils.js"></script>
     <script src="/admin/js/api-client.js"></script>
     <script>
         let ingredients = [];
@@ -446,6 +458,11 @@
                     option.textContent = `${country.flag} ${country.name}`;
                     countrySelect.appendChild(option);
                 });
+
+                const otherOption = document.createElement("option");
+                otherOption.value = "__custom__";
+                otherOption.textContent = "Нет в списке";
+                countrySelect.appendChild(otherOption);
 
             } catch (error) {
                 console.error("Init error:", error);
@@ -502,8 +519,28 @@
         });
 
         document.getElementById("country").addEventListener("change", (e) => {
-            if (e.target.value) {
+            const customGroup = document.getElementById("customCountryGroup");
+            if (e.target.value === "__custom__") {
+                selectedCountry = null;
+                customGroup.style.display = "block";
+                document.getElementById("customCountry").focus();
+            } else if (e.target.value) {
                 selectedCountry = JSON.parse(e.target.value);
+                customGroup.style.display = "none";
+            } else {
+                selectedCountry = null;
+                customGroup.style.display = "none";
+            }
+        });
+
+        document.getElementById("customCountry").addEventListener("input", (e) => {
+            selectedCountry = makeCountryFromInput(e.target.value);
+            const hint = document.getElementById("countryHint");
+
+            if (selectedCountry) {
+                hint.textContent = `${selectedCountry.flag} ${selectedCountry.name}`;
+            } else {
+                hint.textContent = "Введите страну, флаг подставится автоматически, если страна распознана.";
             }
         });
 
@@ -530,7 +567,7 @@
 
             try {
                 // Prepare recipe data
-                const recipeData = {
+                let recipeData = {
                     title: document.getElementById("title").value,
                     titleEn: document.getElementById("titleEn").value,
                     category: document.getElementById("category").value,
@@ -540,6 +577,10 @@
                     ingredients: ingredients,
                     preparation: document.getElementById("preparation").value
                 };
+
+                if (document.getElementById("useAI").checked) {
+                    recipeData = await api.polishRecipe(recipeData);
+                }
 
                 // Create recipe
                 const recipe = await api.createRecipe(recipeData);

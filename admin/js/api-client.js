@@ -100,6 +100,10 @@ class RecipeAPI {
     return this.request("POST", "/api/recipes/", recipeData);
   }
 
+  async polishRecipe(recipeData) {
+    return this.request("POST", "/api/recipes/ai/polish", recipeData);
+  }
+
   async updateRecipe(recipeId, recipeData) {
     return this.request("PUT", `/api/recipes/${recipeId}`, recipeData);
   }

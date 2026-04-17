@@ -1,117 +1,84 @@
 """
-Claude AI Agent for recipe formatting and enhancement
+OpenAI assistant for careful recipe proofreading.
 """
 
-from anthropic import Anthropic
+import json
+import re
+from typing import Any, Dict
+
 from backend.config import settings
-from typing import Dict, Any
+
 
 class RecipeAgent:
     def __init__(self):
-        self.client = Anthropic(api_key=settings.claude_api_key)
-        self.model = "claude-3-5-sonnet-20241022"
+        self.model = settings.openai_model
+        self._client = None
 
-    def format_recipe(self, recipe_data: Dict[str, Any]) -> Dict[str, Any]:
+    @property
+    def client(self):
+        if self._client is None:
+            if not settings.openai_api_key:
+                raise ValueError("OPENAI_API_KEY is not configured")
+
+            from openai import OpenAI
+
+            self._client = OpenAI(api_key=settings.openai_api_key)
+
+        return self._client
+
+    def polish_recipe(self, recipe_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Format raw recipe data using Claude AI
-
-        Takes user input and returns professionally formatted recipe
+        Proofread and lightly polish recipe text without changing the author's meaning.
         """
-
         prompt = f"""
-You are a professional chef and food writer. Format this recipe data into a professional, well-structured recipe.
+Ты редактор семейной книги рецептов.
 
-Input Data:
-- Title: {recipe_data.get('title', 'Untitled Recipe')}
-- English Title: {recipe_data.get('titleEn', '')}
-- Category: {recipe_data.get('category', 'Main Course')}
-- Country: {recipe_data.get('country_origin', 'Unknown')}
-- Description: {recipe_data.get('description', 'A delicious recipe')}
-- Raw Ingredients: {recipe_data.get('raw_ingredients', '')}
-- Raw Instructions: {recipe_data.get('raw_instructions', '')}
+Твоя задача:
+- исправить только орфографию, пунктуацию и явные грамматические ошибки;
+- сделать описание более грамотным, красивым и естественным;
+- сохранить смысл, стиль и все факты автора;
+- не добавлять новые ингредиенты, шаги, советы, времена готовки или факты;
+- не удалять важные детали автора;
+- не менять категорию и страну;
+- если английское название явно с ошибкой, аккуратно исправить перевод.
 
-Please provide the response in JSON format with these exact fields:
+Верни только валидный JSON без markdown с такими полями:
 {{
-    "title": "Professional recipe title in Russian",
-    "titleEn": "Professional English title",
-    "description": "Professional description (1-2 sentences)",
-    "ingredients": ["ingredient 1", "ingredient 2", ...],
-    "preparation": "Detailed step-by-step instructions",
-    "cooking_time": "Estimated cooking time",
-    "servings": "Number of servings",
-    "difficulty": "Easy/Medium/Hard",
-    "tips": "Professional cooking tips"
+  "title": "исправленное русское название",
+  "titleEn": "исправленное английское название",
+  "description": "грамотное описание без новых фактов",
+  "ingredients": ["исправленный ингредиент 1", "исправленный ингредиент 2"],
+  "preparation": "исправленное приготовление без новых шагов"
 }}
 
-Ensure the recipe is well-formatted, clear, and appetizing. Make ingredients specific with quantities.
+Исходный рецепт:
+{json.dumps(recipe_data, ensure_ascii=False, indent=2)}
 """
 
-        message = self.client.messages.create(
+        response = self.client.responses.create(
             model=self.model,
-            max_tokens=2000,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ]
+            input=prompt,
         )
 
-        # Extract the JSON response
-        response_text = message.content[0].text
+        result = self._parse_json(response.output_text)
 
-        # Try to parse JSON
-        import json
-        import re
-
-        # Find JSON in response
-        json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
-        if json_match:
-            try:
-                result = json.loads(json_match.group())
-                return result
-            except json.JSONDecodeError:
-                pass
-
-        # If JSON parsing fails, return structured response
         return {
-            "title": recipe_data.get('title', 'Recipe'),
-            "titleEn": recipe_data.get('titleEn', 'Recipe'),
-            "description": recipe_data.get('description', 'A delicious recipe'),
-            "ingredients": recipe_data.get('raw_ingredients', '').split('\n'),
-            "preparation": recipe_data.get('raw_instructions', 'Follow the instructions'),
-            "cooking_time": "Variable",
-            "servings": "4-6",
-            "difficulty": "Medium",
-            "tips": "Cook with love!"
+            **recipe_data,
+            "title": result.get("title", recipe_data.get("title", "")),
+            "titleEn": result.get("titleEn", recipe_data.get("titleEn", "")),
+            "description": result.get("description", recipe_data.get("description", "")),
+            "ingredients": result.get("ingredients", recipe_data.get("ingredients", [])),
+            "preparation": result.get("preparation", recipe_data.get("preparation", "")),
         }
 
-    def suggest_improvements(self, recipe_text: str) -> str:
-        """Get AI suggestions for recipe improvements"""
+    def _parse_json(self, text: str) -> Dict[str, Any]:
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            match = re.search(r"\{.*\}", text, re.DOTALL)
+            if not match:
+                raise ValueError("AI response did not contain JSON")
+            return json.loads(match.group())
 
-        message = self.client.messages.create(
-            model=self.model,
-            max_tokens=1000,
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"""
-As a professional chef, review this recipe and suggest improvements:
 
-{recipe_text}
-
-Provide constructive feedback on:
-1. Ingredient quantities and measurements
-2. Cooking techniques
-3. Timing and temperature
-4. Flavor balance
-5. Presentation tips
-"""
-                }
-            ]
-        )
-
-        return message.content[0].text
-
-# Global agent instance
 recipe_agent = RecipeAgent()

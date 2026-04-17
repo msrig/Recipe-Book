@@ -1,4 +1,6 @@
 // Search and filter functionality for recipes
+const API_BASE = window.location.protocol.startsWith('http') ? '' : 'http://localhost:8000';
+
 class RecipeSearch {
   constructor(recipes = []) {
     this.recipes = recipes;
@@ -14,7 +16,7 @@ class RecipeSearch {
   // Load recipes from API or fallback to static data
   async loadRecipes() {
     try {
-      const response = await fetch('http://localhost:8000/api/recipes/');
+      const response = await fetch(`${API_BASE}/api/recipes/`);
       if (!response.ok) throw new Error('API request failed');
       const data = await response.json();
       this.recipes = data.recipes || [];
@@ -91,7 +93,7 @@ class RecipeSearch {
 
     // Remove duplicates
     const uniqueCountries = countries.filter((c, i, arr) =>
-      arr.findIndex(x => x.code === c.code) === i
+      arr.findIndex(x => (x.code || x.name) === (c.code || c.name)) === i
     ).sort((a, b) => a.name.localeCompare(b.name));
 
     const countrySelect = document.getElementById('countryFilter');
@@ -102,8 +104,8 @@ class RecipeSearch {
 
     uniqueCountries.forEach(country => {
       const option = document.createElement('option');
-      option.value = country.code;
-      option.textContent = country.name;
+      option.value = country.code || country.name;
+      option.textContent = `${this.getCountryFlag(country.code)} ${country.name}`;
       countrySelect.appendChild(option);
     });
   }
@@ -131,7 +133,11 @@ class RecipeSearch {
       }
 
       // Country filter
-      if (this.currentCountry && recipe.country_code !== this.currentCountry) {
+      if (
+        this.currentCountry &&
+        recipe.country_code !== this.currentCountry &&
+        recipe.country_origin !== this.currentCountry
+      ) {
         return false;
       }
 
@@ -164,13 +170,7 @@ class RecipeSearch {
 
   // Get country flag emoji
   getCountryFlag(countryCode) {
-    const flags = {
-      'UA': '🇺🇦', 'RU': '🇷🇺', 'US': '🇺🇸', 'IT': '🇮🇹',
-      'FR': '🇫🇷', 'JP': '🇯🇵', 'CN': '🇨🇳', 'MX': '🇲🇽',
-      'IN': '🇮🇳', 'TH': '🇹🇭', 'DE': '🇩🇪', 'ES': '🇪🇸',
-      'GR': '🇬🇷', 'PL': '🇵🇱', 'HU': '🇭🇺', 'CZ': '🇨🇿'
-    };
-    return flags[countryCode] || '🌍';
+    return flagFromCountryCode(countryCode);
   }
 
   // Render recipes based on current filters
@@ -204,7 +204,7 @@ class RecipeSearch {
       const countryFlag = this.getCountryFlag(recipe.country_code);
 
       col.innerHTML = `
-        <a href="#recipe-${recipe.id}" class="text-decoration-none" onclick="event.preventDefault(); showRecipeDetail('${recipe.id}')">
+        <a href="recipe.html?id=${encodeURIComponent(recipe.id)}" class="text-decoration-none">
           <div class="card recipe-card h-100">
             <div class="recipe-image-container">
               <img src="${recipe.image}" class="card-img-top recipe-card-img" alt="${recipe.title}">

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, File, UploadFile, Depends, Header
+from fastapi import APIRouter, HTTPException, status, File, UploadFile, Depends, Header, Body
 from typing import List
 from pathlib import Path
 from datetime import datetime
@@ -13,23 +13,31 @@ import io
 
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
 
-# Countries data with flag emojis
+COUNTRY_CODES = [
+    ("Ukraine", "UA"), ("Russia", "RU"), ("USA", "US"), ("Italy", "IT"),
+    ("France", "FR"), ("Japan", "JP"), ("China", "CN"), ("Mexico", "MX"),
+    ("India", "IN"), ("Thailand", "TH"), ("Germany", "DE"), ("Spain", "ES"),
+    ("Greece", "GR"), ("Poland", "PL"), ("Hungary", "HU"), ("Czechia", "CZ"),
+    ("South Korea", "KR"), ("North Korea", "KP"), ("Vietnam", "VN"),
+    ("Turkey", "TR"), ("Georgia", "GE"), ("Armenia", "AM"), ("Azerbaijan", "AZ"),
+    ("Uzbekistan", "UZ"), ("Kazakhstan", "KZ"), ("Israel", "IL"),
+    ("Morocco", "MA"), ("Egypt", "EG"), ("Brazil", "BR"), ("Argentina", "AR"),
+    ("Peru", "PE"), ("Canada", "CA"), ("United Kingdom", "GB"),
+    ("Ireland", "IE"), ("Sweden", "SE"), ("Norway", "NO"), ("Denmark", "DK"),
+    ("Netherlands", "NL"), ("Belgium", "BE"), ("Switzerland", "CH"),
+    ("Austria", "AT"), ("Romania", "RO"), ("Bulgaria", "BG"), ("Serbia", "RS"),
+    ("Croatia", "HR"), ("Australia", "AU"), ("New Zealand", "NZ"),
+]
+
+def flag_from_country_code(code: str) -> str:
+    """Convert ISO 3166-1 alpha-2 country code to emoji flag."""
+    if not code or len(code) != 2:
+        return "🌍"
+    return "".join(chr(127397 + ord(char)) for char in code.upper())
+
 COUNTRIES = [
-    Country(name="Ukraine", code="UA", flag="🇺🇦"),
-    Country(name="Russia", code="RU", flag="🇷🇺"),
-    Country(name="USA", code="US", flag="🇺🇸"),
-    Country(name="Italy", code="IT", flag="🇮🇹"),
-    Country(name="France", code="FR", flag="🇫🇷"),
-    Country(name="Japan", code="JP", flag="🇯🇵"),
-    Country(name="China", code="CN", flag="🇨🇳"),
-    Country(name="Mexico", code="MX", flag="🇲🇽"),
-    Country(name="India", code="IN", flag="🇮🇳"),
-    Country(name="Thailand", code="TH", flag="🇹🇭"),
-    Country(name="Germany", code="DE", flag="🇩🇪"),
-    Country(name="Spain", code="ES", flag="🇪🇸"),
-    Country(name="Greece", code="GR", flag="🇬🇷"),
-    Country(name="Poland", code="PL", flag="🇵🇱"),
-    Country(name="Hungary", code="HU", flag="🇭🇺"),
+    Country(name=name, code=code, flag=flag_from_country_code(code))
+    for name, code in COUNTRY_CODES
 ]
 
 def load_recipes() -> RecipeDatabase:
@@ -44,7 +52,7 @@ def save_recipes(db: RecipeDatabase):
     """Save recipes to JSON file"""
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     with open(settings.recipes_file, 'w', encoding='utf-8') as f:
-        json.dump(db.dict(), f, ensure_ascii=False, indent=2)
+        json.dump(db.model_dump(), f, ensure_ascii=False, indent=2)
 
 def optimize_image(file: UploadFile, max_width: int = 800, max_height: int = 500) -> bytes:
     """Optimize uploaded image"""
@@ -79,6 +87,22 @@ async def get_recipes(category: str = None, country: str = None):
         "total": len(recipes)
     }
 
+@router.post("/ai/polish", response_model=RecipeCreate)
+async def polish_recipe(
+    recipe: RecipeCreate,
+    username: str = Depends(verify_token)
+):
+    """Proofread recipe text with OpenAI before saving it"""
+    try:
+        from backend.agents.recipe_agent import recipe_agent
+
+        polished = recipe_agent.polish_recipe(recipe.model_dump())
+        return RecipeCreate(**polished)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"AI processing failed: {str(e)}")
+
 @router.get("/{recipe_id}")
 async def get_recipe(recipe_id: str):
     """Get a single recipe"""
@@ -103,7 +127,7 @@ async def create_recipe(
 
     new_recipe = Recipe(
         id=recipe_id,
-        **recipe.dict(),
+        **recipe.model_dump(),
         image=f"images/{recipe_id}.jpg",
         created_at=datetime.now().isoformat(),
         updated_at=datetime.now().isoformat()
@@ -130,8 +154,8 @@ async def update_recipe(
     existing_recipe = db.recipes[recipe_index]
 
     # Update only provided fields
-    update_data = recipe.dict(exclude_unset=True)
-    updated_recipe = existing_recipe.copy(update={
+    update_data = recipe.model_dump(exclude_unset=True)
+    updated_recipe = existing_recipe.model_copy(update={
         **update_data,
         "updated_at": datetime.now().isoformat()
     })
@@ -207,7 +231,7 @@ async def get_countries():
 
 @router.post("/categories/")
 async def add_category(
-    category: str,
+    category: str = Body(..., embed=True),
     username: str = Depends(verify_token)
 ):
     """Add a new category"""
