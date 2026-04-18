@@ -208,10 +208,18 @@ async def upload_recipe_image(
     with open(image_path, 'wb') as f:
         f.write(image_data)
 
+    # Update recipe image path to the newly uploaded file.
+    recipe.image = f"images/{recipe_id}.jpg"
+
+    # Touch recipe timestamp to bust client image cache via updated_at.
+    recipe.updated_at = datetime.now().isoformat()
+    save_recipes(db)
+
     return {
         "message": "Image uploaded successfully",
         "recipe_id": recipe_id,
-        "image_path": f"images/{recipe_id}.jpg"
+        "image_path": recipe.image,
+        "updated_at": recipe.updated_at,
     }
 
 @router.get("/categories/list")
@@ -244,3 +252,27 @@ async def add_category(
     save_recipes(db)
 
     return {"message": "Category added", "category": category}
+
+@router.delete("/categories/{category}")
+async def delete_category(
+    category: str,
+    username: str = Depends(verify_token)
+):
+    """Delete an unused category"""
+    db = load_recipes()
+
+    existing_category = next((cat for cat in db.categories if cat.lower() == category.lower()), None)
+    if not existing_category:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    used_by = [recipe.title for recipe in db.recipes if recipe.category.lower() == existing_category.lower()]
+    if used_by:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Category is used by {len(used_by)} recipe(s): {', '.join(used_by[:3])}"
+        )
+
+    db.categories = [cat for cat in db.categories if cat.lower() != existing_category.lower()]
+    save_recipes(db)
+
+    return {"message": "Category deleted", "category": existing_category}

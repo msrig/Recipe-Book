@@ -37,6 +37,10 @@ images_dir = base_dir / "images"
 if images_dir.exists():
     app.mount("/images", StaticFiles(directory=str(images_dir)), name="images")
 
+css_dir = base_dir / "css"
+if css_dir.exists():
+    app.mount("/css", StaticFiles(directory=str(css_dir)), name="css")
+
 @app.get("/")
 async def root():
     index_file = base_dir / "index.html"

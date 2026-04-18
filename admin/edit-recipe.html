@@ -9,10 +9,10 @@
     <link rel="stylesheet" href="/admin/css/style.css">
     <style>
         .form-card {
-            background: white;
-            border-radius: 1rem;
+            background: var(--surface-color);
+            border-radius: 8px;
             padding: 2rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 12px 32px rgba(23, 32, 28, 0.07);
             margin-bottom: 2rem;
         }
 
@@ -48,8 +48,8 @@
         }
 
         .form-control {
-            border: 2px solid var(--border-color);
-            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             padding: 0.75rem;
             font-size: 1rem;
             transition: all 0.3s ease;
@@ -57,7 +57,7 @@
 
         .form-control:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+            box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.18);
             outline: none;
         }
 
@@ -73,7 +73,7 @@
 
         .image-preview img {
             width: 100%;
-            border-radius: 0.5rem;
+            border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
@@ -89,17 +89,17 @@
 
         .ingredients-input button {
             padding: 0.75rem;
-            background: #dc3545;
+            background: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 0.5rem;
+            border-radius: 8px;
             cursor: pointer;
         }
 
         .ingredient-item {
             background: var(--light-bg);
             padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
+            border-radius: 8px;
             margin-bottom: 0.5rem;
             display: flex;
             justify-content: space-between;
@@ -107,11 +107,11 @@
         }
 
         .ingredient-item button {
-            background: #dc3545;
+            background: var(--primary-color);
             border: none;
             color: white;
             padding: 0.25rem 0.75rem;
-            border-radius: 0.3rem;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 0.8rem;
         }
@@ -127,7 +127,7 @@
             color: white;
             padding: 0.75rem 2rem;
             border: none;
-            border-radius: 0.5rem;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
             font-size: 1rem;
@@ -141,7 +141,7 @@
         }
 
         .btn-submit:disabled {
-            background: #ccc;
+            background: var(--border-color);
             cursor: not-allowed;
             transform: none;
         }
@@ -151,7 +151,7 @@
             color: var(--accent-color);
             padding: 0.75rem 2rem;
             border: none;
-            border-radius: 0.5rem;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
             font-size: 1rem;
@@ -159,11 +159,11 @@
         }
 
         .btn-cancel:hover {
-            background: #ddd;
+            background: var(--border-color);
         }
 
         .alert {
-            border-radius: 0.5rem;
+            border-radius: 8px;
             border: none;
         }
 
@@ -178,11 +178,11 @@
         }
 
         .delete-button {
-            background: #dc3545 !important;
+            background: var(--primary-color) !important;
         }
 
         .delete-button:hover {
-            background: #c82333 !important;
+            background: var(--primary-dark) !important;
         }
     </style>
 </head>
@@ -216,6 +216,12 @@
                         <span>Все рецепты</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Вернуться на сайт</span>
+                    </a>
+                </li>
             </ul>
         </nav>
 
@@ -224,12 +230,16 @@
             <!-- Top Bar -->
             <div class="top-bar">
                 <div class="top-bar-left">
-                    <button class="toggle-sidebar" onclick="toggleSidebar()">
+                    <button type="button" class="toggle-sidebar" onclick="toggleSidebar()" aria-label="Открыть меню">
                         <i class="fas fa-bars"></i>
                     </button>
                     <h1>Редактировать рецепт</h1>
                 </div>
                 <div class="top-bar-right">
+                    <a class="btn-site" href="/">
+                        <i class="fas fa-arrow-left"></i>
+                        <span class="site-link-text">Вернуться на сайт</span>
+                    </a>
                     <button class="btn-logout" onclick="logout()">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
@@ -418,6 +428,22 @@
         let selectedCountry = null;
         let currentRecipeId = null;
 
+        function getImageUrl(imagePath, updatedAt = null) {
+            if (!imagePath) return "";
+            let resolved = imagePath;
+
+            if (!(imagePath.startsWith("http") || imagePath.startsWith("/") || imagePath.startsWith("data:"))) {
+                const prefix = window.location.port === "5500" ? "../" : "/";
+                resolved = `${prefix}${imagePath}`;
+            }
+
+            if (!updatedAt) return resolved;
+
+            const version = encodeURIComponent(String(updatedAt));
+            const separator = resolved.includes("?") ? "&" : "?";
+            return `${resolved}${separator}v=${version}`;
+        }
+
         async function initForm() {
             try {
                 await api.verifyToken();
@@ -494,7 +520,7 @@
 
                 // Show current image
                 if (recipe.image) {
-                    document.getElementById("currentImg").src = recipe.image;
+                    document.getElementById("currentImg").src = getImageUrl(recipe.image, recipe.updated_at);
                     document.getElementById("currentImage").style.display = "block";
                 }
 
@@ -669,13 +695,30 @@
         }
 
         function toggleSidebar() {
-            document.querySelector('.sidebar').classList.toggle('open');
+            const sidebar = document.querySelector(".sidebar");
+            const isOpen = sidebar.classList.toggle("open");
+            document.body.classList.toggle("admin-menu-open", isOpen);
+        }
+
+        function closeSidebar() {
+            document.querySelector(".sidebar").classList.remove("open");
+            document.body.classList.remove("admin-menu-open");
         }
 
         function logout() {
             api.clearToken();
             window.location.href = "/admin/login.html";
         }
+
+        document.addEventListener("click", (event) => {
+            if (event.target === document.body && document.body.classList.contains("admin-menu-open")) {
+                closeSidebar();
+            }
+        });
+
+        document.querySelectorAll(".sidebar .nav-link").forEach(link => {
+            link.addEventListener("click", closeSidebar);
+        });
 
         // Initialize on page load
         window.addEventListener("DOMContentLoaded", initForm);

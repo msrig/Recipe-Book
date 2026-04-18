@@ -2,10 +2,14 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator
 from functools import lru_cache
 from pathlib import Path
+import os
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=Path(__file__).parent / ".env",
+        env_file=(
+            Path(__file__).parent / ".env",        # backend/.env
+            Path(__file__).parent.parent / ".env", # project root .env
+        ),
         case_sensitive=False,
         extra="ignore",
     )
@@ -39,6 +43,19 @@ class Settings(BaseSettings):
         if isinstance(value, str) and value.lower() in {"release", "prod", "production"}:
             return False
         return value
+
+    @field_validator("openai_api_key", mode="before")
+    @classmethod
+    def resolve_openai_key(cls, value):
+        # Keep explicit OPENAI_API_KEY as the source of truth.
+        if value:
+            return value
+
+        env_value = os.getenv("OPENAI_API_KEY")
+        if env_value:
+            return env_value
+
+        return ""
 
 @lru_cache()
 def get_settings():

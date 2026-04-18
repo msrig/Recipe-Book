@@ -186,7 +186,7 @@ class RecipeSearch {
       noResults.className = 'col-12 text-center py-5';
       noResults.innerHTML = `
         <div class="no-results">
-          <div class="no-results-icon">😢</div>
+          <div class="no-results-icon" aria-hidden="true"><i class="fas fa-magnifying-glass"></i></div>
           <p class="text-muted fs-5">Рецепты не найдены</p>
           <p class="text-muted small">Попробуйте изменить фильтры или поисковый запрос</p>
         </div>
@@ -202,24 +202,32 @@ class RecipeSearch {
       col.style.animationDelay = (index * 0.1) + 's';
 
       const countryFlag = this.getCountryFlag(recipe.country_code);
+      const ingredientCount = Array.isArray(recipe.ingredients) ? recipe.ingredients.length : 0;
+      const title = this.escapeHtml(recipe.title);
+      const country = this.escapeHtml(recipe.country_origin);
+      const category = this.escapeHtml(recipe.category);
+      const description = this.escapeHtml(recipe.description);
+      const image = this.escapeHtml(this.getImageUrl(recipe.image, recipe.updated_at));
 
       col.innerHTML = `
         <a href="recipe.html?id=${encodeURIComponent(recipe.id)}" class="text-decoration-none">
           <div class="card recipe-card h-100">
             <div class="recipe-image-container">
-              <img src="${recipe.image}" class="card-img-top recipe-card-img" alt="${recipe.title}">
+              <img src="${image}" class="card-img-top recipe-card-img" alt="${title}">
               <div class="recipe-overlay">
-                <span class="recipe-category">${recipe.category}</span>
+                <span class="recipe-category">${category}</span>
+                <span class="country-chip" title="${country}">${countryFlag} ${country}</span>
               </div>
             </div>
             <div class="card-body">
-              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                <span class="country-flag" title="${recipe.country_origin}" style="font-size: 1.3rem;">
-                  ${countryFlag}
-                </span>
-                <h5 class="card-title text-dark" style="margin: 0; flex: 1;">${recipe.title}</h5>
+              <div class="recipe-card-heading">
+                <h5 class="card-title">${title}</h5>
               </div>
-              <p class="card-text text-muted small">${recipe.description}</p>
+              <p class="card-text">${description}</p>
+              <div class="recipe-card-footer">
+                <span>${ingredientCount} ингредиентов</span>
+                <span class="recipe-link-copy">Открыть <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
+              </div>
             </div>
           </div>
         </a>
@@ -241,6 +249,21 @@ class RecipeSearch {
     });
 
     return Array.from(suggestions).slice(0, 5);
+  }
+
+  getImageUrl(imagePath, updatedAt) {
+    if (!imagePath) return '';
+    if (!updatedAt) return imagePath;
+
+    const version = encodeURIComponent(String(updatedAt));
+    const separator = imagePath.includes('?') ? '&' : '?';
+    return `${imagePath}${separator}v=${version}`;
+  }
+
+  escapeHtml(value = '') {
+    const div = document.createElement('div');
+    div.textContent = String(value);
+    return div.innerHTML;
   }
 }
 

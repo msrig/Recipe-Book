@@ -4,9 +4,35 @@
  */
 
 class RecipeAPI {
-  constructor(baseURL = "http://localhost:8000") {
-    this.baseURL = baseURL;
+  constructor(baseURL = null) {
+    this.baseURL = baseURL ?? this.resolveBaseURL();
     this.token = localStorage.getItem("access_token");
+  }
+
+  resolveBaseURL() {
+    const params = new URLSearchParams(window.location.search);
+    const apiBaseFromUrl = params.get("api_base");
+
+    if (apiBaseFromUrl) {
+      const normalized = apiBaseFromUrl.replace(/\/$/, "");
+      localStorage.setItem("recipe_api_base", normalized);
+      return normalized;
+    }
+
+    const savedApiBase = localStorage.getItem("recipe_api_base");
+    if (savedApiBase) {
+      return savedApiBase.replace(/\/$/, "");
+    }
+
+    if (window.RECIPE_API_BASE) {
+      return String(window.RECIPE_API_BASE).replace(/\/$/, "");
+    }
+
+    if (["5500", "5501", "5173", "5174"].includes(window.location.port)) {
+      return "http://127.0.0.1:8000";
+    }
+
+    return "";
   }
 
   // Set token after login
@@ -48,20 +74,34 @@ class RecipeAPI {
 
     try {
       const response = await fetch(url, options);
+      const responseText = await response.text();
+      let responseData = null;
+
+      if (responseText) {
+        try {
+          responseData = JSON.parse(responseText);
+        } catch (error) {
+          throw new Error(`Expected JSON from ${url}, got: ${responseText.slice(0, 120)}`);
+        }
+      }
 
       if (response.status === 401) {
         // Token expired or invalid
         this.clearToken();
-        window.location.href = "/admin/login.html";
-        return null;
+        throw new Error(responseData?.detail || "Invalid credentials");
+      }
+
+      if (response.status === 405 && endpoint.startsWith("/api/")) {
+        throw new Error(
+          "HTTP 405. API-запрос попал не в FastAPI backend. Если вы используете ngrok, запустите туннель на backend-порт 8000 или откройте админку через backend/ngrok URL."
+        );
       }
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || `HTTP ${response.status}`);
+        throw new Error(responseData?.detail || responseText || `HTTP ${response.status}`);
       }
 
-      return await response.json();
+      return responseData;
     } catch (error) {
       console.error(`API Error: ${endpoint}`, error);
       throw error;
@@ -141,6 +181,10 @@ class RecipeAPI {
 
   async addCategory(category) {
     return this.request("POST", "/api/recipes/categories/", { category });
+  }
+
+  async deleteCategory(category) {
+    return this.request("DELETE", `/api/recipes/categories/${encodeURIComponent(category)}`);
   }
 
   // Country endpoints

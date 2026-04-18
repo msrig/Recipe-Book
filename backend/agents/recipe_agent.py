@@ -18,7 +18,10 @@ class RecipeAgent:
     def client(self):
         if self._client is None:
             if not settings.openai_api_key:
-                raise ValueError("OPENAI_API_KEY is not configured")
+                raise ValueError(
+                    "OPENAI_API_KEY is not configured. "
+                    "Add it to backend/.env (or project .env) and restart the backend."
+                )
 
             from openai import OpenAI
 
