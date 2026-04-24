@@ -180,6 +180,99 @@
             height: 1.5rem;
             margin-right: 0.5rem;
         }
+
+        .ai-import-box {
+            background: rgba(201, 162, 39, 0.08);
+            border: 1px dashed var(--primary-color);
+            border-radius: 10px;
+            padding: 1rem;
+        }
+
+        .ai-import-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .btn-camera {
+            background: var(--surface-color);
+            color: var(--accent-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 800;
+            padding: 0.75rem 1rem;
+            transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+        }
+
+        .btn-camera:hover {
+            background: var(--neutral-color);
+            border-color: var(--primary-color);
+            color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .camera-panel {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .camera-panel.active {
+            display: block;
+        }
+
+        .camera-video {
+            width: 100%;
+            max-width: 520px;
+            aspect-ratio: 4 / 3;
+            background: var(--accent-color);
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+        }
+
+        .camera-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .handwritten-preview {
+            display: none;
+            margin-top: 1rem;
+            max-width: 300px;
+        }
+
+        .handwritten-preview img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .ai-suggestion-image {
+            margin-top: 0.75rem;
+            max-width: 300px;
+        }
+
+        .ai-suggestion-image img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .ai-suggestion-status {
+            display: none;
+            margin-top: 0.5rem;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
     </style>
 </head>
 <body>
@@ -247,6 +340,55 @@
                 <div id="alertContainer"></div>
 
                 <form id="recipeForm" onsubmit="handleCreateRecipe(event)" class="form-card">
+                    <!-- AI Import from Handwriting -->
+                    <div class="form-section">
+                        <h3>
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                            AI-импорт из рукописного рецепта
+                        </h3>
+
+                        <div class="ai-import-box">
+                            <div class="form-group">
+                                <label for="handwrittenImageInput" class="form-label">Фото рукописного рецепта</label>
+                                <input
+                                    type="file"
+                                    id="handwrittenImageInput"
+                                    class="form-control"
+                                    accept="image/*"
+                                >
+                                <small class="text-muted d-block mt-2">
+                                    AI распознает текст и заполнит название, ингредиенты, описание, страну и категорию.
+                                </small>
+                            </div>
+                            <div class="ai-import-actions">
+                                <button type="button" id="startCameraBtn" class="btn-camera">
+                                    <i class="fas fa-camera"></i> Сфотографировать рецепт
+                                </button>
+                                <button type="button" id="extractBtn" class="btn-submit" style="max-width: 360px;">
+                                    <i class="fas fa-magic"></i> Заполнить форму по фото
+                                </button>
+                            </div>
+
+                            <div id="cameraPanel" class="camera-panel" aria-live="polite">
+                                <video id="cameraVideo" class="camera-video" autoplay playsinline muted></video>
+                                <canvas id="cameraCanvas" style="display: none;"></canvas>
+                                <div class="camera-controls">
+                                    <button type="button" id="capturePhotoBtn" class="btn-submit" style="max-width: 220px;">
+                                        <i class="fas fa-camera-retro"></i> Сделать снимок
+                                    </button>
+                                    <button type="button" id="stopCameraBtn" class="btn-camera">
+                                        <i class="fas fa-xmark"></i> Закрыть камеру
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="handwrittenPreview" class="handwritten-preview">
+                                <small class="text-muted d-block mb-2">Фото для распознавания:</small>
+                                <img id="handwrittenPreviewImg" alt="Фото рецепта для AI-распознавания">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Basic Info Section -->
                     <div class="form-section">
                         <h3>
@@ -373,19 +515,24 @@
                         </h3>
 
                         <div class="form-group">
-                            <label for="imageInput" class="form-label">Загрузить фотографию *</label>
+                            <label for="imageInput" class="form-label">Загрузить фотографию блюда (опционально)</label>
                             <input
                                 type="file"
                                 id="imageInput"
                                 class="form-control"
                                 accept="image/*"
-                                required
                             >
                             <small class="text-muted">Рекомендуемый размер: 800x500px</small>
                         </div>
 
                         <div id="imagePreview" class="image-preview" style="display: none;">
                             <img id="previewImg" alt="Превью">
+                        </div>
+
+                        <div id="aiImageSuggestion" class="ai-suggestion-image" style="display: none;">
+                            <small class="text-muted d-block mb-2">Сгенерированное фото (будет использовано, если не загрузить своё):</small>
+                            <img id="aiPreviewImg" alt="AI photo suggestion">
+                            <small id="aiPreviewStatus" class="ai-suggestion-status"></small>
                         </div>
                     </div>
 
@@ -439,6 +586,11 @@
     <script>
         let ingredients = [];
         let selectedCountry = null;
+        let aiImageQuery = "";
+        let aiImagePreviewUrl = "";
+        let aiImagePreviewPath = "";
+        let handwrittenRecipeFile = null;
+        let cameraStream = null;
 
         async function initForm() {
             try {
@@ -474,9 +626,35 @@
                 otherOption.textContent = "Нет в списке";
                 countrySelect.appendChild(otherOption);
 
+                setDefaultCountry("UA");
+
             } catch (error) {
                 console.error("Init error:", error);
                 window.location.href = "/admin/login.html";
+            }
+        }
+
+        function setDefaultCountry(countryCode) {
+            const countrySelect = document.getElementById("country");
+            const normalizedCode = countryCode.toUpperCase();
+
+            for (const option of countrySelect.options) {
+                if (!option.value || option.value === "__custom__") {
+                    continue;
+                }
+
+                try {
+                    const country = JSON.parse(option.value);
+                    if (country.code === normalizedCode) {
+                        selectedCountry = country;
+                        countrySelect.value = option.value;
+                        document.getElementById("customCountryGroup").style.display = "none";
+                        document.getElementById("customCountry").value = "";
+                        return;
+                    }
+                } catch (error) {
+                    // Ignore placeholder or malformed values.
+                }
             }
         }
 
@@ -525,8 +703,265 @@
                     document.getElementById("imagePreview").style.display = "block";
                 };
                 reader.readAsDataURL(file);
+            } else {
+                document.getElementById("imagePreview").style.display = "none";
             }
         });
+
+        function previewHandwrittenFile(file) {
+            handwrittenRecipeFile = file;
+
+            if (!file) {
+                document.getElementById("handwrittenPreview").style.display = "none";
+                document.getElementById("handwrittenPreviewImg").removeAttribute("src");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                document.getElementById("handwrittenPreviewImg").src = event.target.result;
+                document.getElementById("handwrittenPreview").style.display = "block";
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function setHandwrittenInputFile(file) {
+            previewHandwrittenFile(file);
+
+            const input = document.getElementById("handwrittenImageInput");
+            if (window.DataTransfer) {
+                const transfer = new DataTransfer();
+                transfer.items.add(file);
+                input.files = transfer.files;
+            }
+        }
+
+        document.getElementById("handwrittenImageInput").addEventListener("change", (e) => {
+            previewHandwrittenFile(e.target.files[0] || null);
+        });
+
+        async function startCamera() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert("Камера недоступна в этом браузере. Попробуйте загрузить фото файлом.");
+                return;
+            }
+
+            const cameraPanel = document.getElementById("cameraPanel");
+            const video = document.getElementById("cameraVideo");
+            const startBtn = document.getElementById("startCameraBtn");
+
+            startBtn.disabled = true;
+
+            try {
+                stopCamera();
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: { ideal: "environment" },
+                        width: { ideal: 1600 },
+                        height: { ideal: 1200 }
+                    },
+                    audio: false
+                });
+                video.srcObject = cameraStream;
+                cameraPanel.classList.add("active");
+            } catch (error) {
+                alert(`Не удалось открыть камеру: ${error.message}`);
+            } finally {
+                startBtn.disabled = false;
+            }
+        }
+
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+
+            const video = document.getElementById("cameraVideo");
+            video.srcObject = null;
+            document.getElementById("cameraPanel").classList.remove("active");
+        }
+
+        async function captureRecipePhoto() {
+            const video = document.getElementById("cameraVideo");
+
+            if (!cameraStream || !video.videoWidth || !video.videoHeight) {
+                alert("Камера еще не готова. Подождите пару секунд и попробуйте снова.");
+                return;
+            }
+
+            const canvas = document.getElementById("cameraCanvas");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    alert("Не удалось сделать снимок. Попробуйте еще раз.");
+                    return;
+                }
+
+                const file = new File([blob], `recipe-photo-${Date.now()}.jpg`, { type: "image/jpeg" });
+                setHandwrittenInputFile(file);
+                stopCamera();
+            }, "image/jpeg", 0.9);
+        }
+
+        async function handleExtractFromPhoto() {
+            const file = handwrittenRecipeFile || document.getElementById("handwrittenImageInput").files[0];
+            if (!file) {
+                alert("Выберите или сфотографируйте рецепт");
+                return;
+            }
+
+            const extractBtn = document.getElementById("extractBtn");
+            const originalHtml = extractBtn.innerHTML;
+            extractBtn.disabled = true;
+            extractBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>Распознаю...';
+
+            try {
+                const data = await api.extractRecipeFromPhoto(file);
+                const recipe = data.recipe || {};
+
+                document.getElementById("title").value = recipe.title || "";
+                document.getElementById("titleEn").value = recipe.titleEn || "";
+                document.getElementById("description").value = recipe.description || "";
+                document.getElementById("preparation").value = recipe.preparation || "";
+
+                if (recipe.category) {
+                    const categorySelect = document.getElementById("category");
+                    const exists = [...categorySelect.options].some(opt => opt.value === recipe.category);
+                    categorySelect.value = exists ? recipe.category : "";
+                }
+
+                if (Array.isArray(recipe.ingredients)) {
+                    ingredients = recipe.ingredients
+                        .map(item => String(item).trim())
+                        .filter(Boolean);
+                    renderIngredients();
+                }
+
+                applyCountrySelection(recipe.country_code, recipe.country_origin);
+
+                aiImageQuery = (data.image_query || "").trim();
+                aiImagePreviewUrl = data.image_preview_url || "";
+                aiImagePreviewPath = data.image_preview_path || "";
+                if (aiImagePreviewUrl) {
+                    showAiImagePreview(aiImagePreviewUrl);
+                } else {
+                    hideAiImagePreview();
+                }
+
+                const alertContainer = document.getElementById("alertContainer");
+                alertContainer.innerHTML = `
+                    <div class="alert alert-success" role="alert">
+                        <i class="fas fa-check-circle"></i> Черновик рецепта заполнен по фото. Проверьте и сохраните.
+                    </div>
+                `;
+                window.scrollTo(0, 0);
+            } catch (error) {
+                const alertContainer = document.getElementById("alertContainer");
+                alertContainer.innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-circle"></i> Ошибка AI-распознавания: ${error.message}
+                    </div>
+                `;
+                window.scrollTo(0, 0);
+            } finally {
+                extractBtn.disabled = false;
+                extractBtn.innerHTML = originalHtml;
+            }
+        }
+
+        function resolveAssetUrl(pathOrUrl) {
+            if (!pathOrUrl) return "";
+            if (pathOrUrl.startsWith("http") || pathOrUrl.startsWith("data:")) {
+                return pathOrUrl;
+            }
+            if (pathOrUrl.startsWith("/")) {
+                return `${api.baseURL}${pathOrUrl}`;
+            }
+            return `${api.baseURL}/${pathOrUrl}`;
+        }
+
+        function showAiImagePreview(previewUrl) {
+            const previewImg = document.getElementById("aiPreviewImg");
+            const suggestion = document.getElementById("aiImageSuggestion");
+            const status = document.getElementById("aiPreviewStatus");
+
+            status.style.display = "none";
+            status.textContent = "";
+            previewImg.style.display = "block";
+            previewImg.onerror = () => {
+                previewImg.style.display = "none";
+                status.textContent = "Предпросмотр не загрузился, но фото будет сгенерировано при сохранении.";
+                status.style.display = "block";
+            };
+            previewImg.onload = () => {
+                status.style.display = "none";
+            };
+            previewImg.src = resolveAssetUrl(previewUrl);
+            suggestion.style.display = "block";
+        }
+
+        function hideAiImagePreview() {
+            const previewImg = document.getElementById("aiPreviewImg");
+            const status = document.getElementById("aiPreviewStatus");
+
+            previewImg.removeAttribute("src");
+            previewImg.style.display = "block";
+            status.style.display = "none";
+            status.textContent = "";
+            document.getElementById("aiImageSuggestion").style.display = "none";
+        }
+
+        function applyCountrySelection(code, name) {
+            const countrySelect = document.getElementById("country");
+            const normalizedCode = (code || "").toUpperCase();
+            const normalizedName = (name || "").toLowerCase().trim();
+
+            let matchedValue = null;
+            for (const option of countrySelect.options) {
+                if (!option.value || option.value === "__custom__") {
+                    continue;
+                }
+                try {
+                    const country = JSON.parse(option.value);
+                    if (
+                        (normalizedCode && country.code === normalizedCode) ||
+                        (normalizedName && country.name.toLowerCase() === normalizedName)
+                    ) {
+                        matchedValue = option.value;
+                        selectedCountry = country;
+                        break;
+                    }
+                } catch (err) {
+                    // Ignore invalid option payloads.
+                }
+            }
+
+            const customGroup = document.getElementById("customCountryGroup");
+            const customInput = document.getElementById("customCountry");
+
+            if (matchedValue) {
+                countrySelect.value = matchedValue;
+                customGroup.style.display = "none";
+                customInput.value = "";
+                return;
+            }
+
+            if (name) {
+                countrySelect.value = "__custom__";
+                customGroup.style.display = "block";
+                customInput.value = name;
+                selectedCountry = makeCountryFromInput(name) || {
+                    name,
+                    code: normalizedCode || "UN",
+                    flag: "🌍"
+                };
+                document.getElementById("countryHint").textContent = `${selectedCountry.flag} ${selectedCountry.name}`;
+            }
+        }
 
         document.getElementById("country").addEventListener("change", (e) => {
             const customGroup = document.getElementById("customCountryGroup");
@@ -567,6 +1002,12 @@
                 return;
             }
 
+            const imageFile = document.getElementById("imageInput").files[0];
+            if (!imageFile && !aiImageQuery) {
+                alert("Загрузите фото блюда или используйте AI-импорт, чтобы подобрать фото автоматически");
+                return;
+            }
+
             const submitBtn = event.target.querySelector("button[type='submit']");
             const loading = submitBtn.querySelector(".loading");
             const submitText = submitBtn.querySelector(".submit-text");
@@ -596,9 +1037,12 @@
                 const recipe = await api.createRecipe(recipeData);
 
                 // Upload image
-                const imageFile = document.getElementById("imageInput").files[0];
                 if (imageFile) {
                     await api.uploadImage(recipe.id, imageFile);
+                } else if (aiImagePreviewPath) {
+                    await api.uploadImageFromPreview(recipe.id, aiImagePreviewPath);
+                } else if (aiImageQuery) {
+                    await api.uploadImageFromQuery(recipe.id, aiImageQuery);
                 }
 
                 // Success
@@ -654,6 +1098,12 @@
         document.querySelectorAll(".sidebar .nav-link").forEach(link => {
             link.addEventListener("click", closeSidebar);
         });
+
+        document.getElementById("extractBtn").addEventListener("click", handleExtractFromPhoto);
+        document.getElementById("startCameraBtn").addEventListener("click", startCamera);
+        document.getElementById("capturePhotoBtn").addEventListener("click", captureRecipePhoto);
+        document.getElementById("stopCameraBtn").addEventListener("click", stopCamera);
+        window.addEventListener("beforeunload", stopCamera);
 
         // Initialize on page load
         window.addEventListener("DOMContentLoaded", initForm);

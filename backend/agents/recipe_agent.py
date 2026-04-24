@@ -4,7 +4,8 @@ OpenAI assistant for careful recipe proofreading.
 
 import json
 import re
-from typing import Any, Dict
+import base64
+from typing import Any, Dict, List
 
 from backend.config import settings
 
@@ -72,6 +73,76 @@ class RecipeAgent:
             "description": result.get("description", recipe_data.get("description", "")),
             "ingredients": result.get("ingredients", recipe_data.get("ingredients", [])),
             "preparation": result.get("preparation", recipe_data.get("preparation", "")),
+        }
+
+    def extract_recipe_from_photo(
+        self,
+        image_bytes: bytes,
+        mime_type: str,
+        categories: List[str],
+        countries: List[Dict[str, str]],
+    ) -> Dict[str, Any]:
+        """
+        Extract recipe fields from a handwritten photo.
+        """
+        encoded = base64.b64encode(image_bytes).decode("utf-8")
+        categories_text = ", ".join(categories)
+        countries_text = ", ".join(f"{c['name']} ({c['code']})" for c in countries)
+
+        prompt = f"""
+Ты помощник для админки книги рецептов.
+Нужно распознать рукописный рецепт с фотографии и вернуть структурированные данные.
+
+Правила:
+- Распознавай текст максимально точно, но исправляй явные орфографические ошибки.
+- Не выдумывай ингредиенты и шаги. Если фрагмент не читается, оставь максимально вероятный вариант.
+- category выбери строго из списка: {categories_text}
+- country выбери строго из списка стран: {countries_text}
+- titleEn переведи кратко и естественно на английский.
+- description сделай кратким 1-2 предложения.
+- image_query: короткий поисковый запрос на английском для фото готового блюда (2-8 слов), без брендов.
+
+Верни только JSON без markdown:
+{{
+  "title": "Название на русском",
+  "titleEn": "Title in English",
+  "category": "одна из категорий",
+  "country_origin": "название страны",
+  "country_code": "код страны",
+  "description": "краткое описание",
+  "ingredients": ["ингредиент 1", "ингредиент 2"],
+  "preparation": "шаги приготовления",
+  "image_query": "english food photo query"
+}}
+"""
+
+        response = self.client.responses.create(
+            model=self.model,
+            input=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": prompt},
+                        {
+                            "type": "input_image",
+                            "image_url": f"data:{mime_type};base64,{encoded}",
+                        },
+                    ],
+                }
+            ],
+        )
+
+        result = self._parse_json(response.output_text)
+        return {
+            "title": result.get("title", ""),
+            "titleEn": result.get("titleEn", ""),
+            "category": result.get("category", ""),
+            "country_origin": result.get("country_origin", ""),
+            "country_code": result.get("country_code", ""),
+            "description": result.get("description", ""),
+            "ingredients": result.get("ingredients", []),
+            "preparation": result.get("preparation", ""),
+            "image_query": result.get("image_query", ""),
         }
 
     def _parse_json(self, text: str) -> Dict[str, Any]:

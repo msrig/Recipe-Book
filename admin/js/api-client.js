@@ -144,6 +144,27 @@ class RecipeAPI {
     return this.request("POST", "/api/recipes/ai/polish", recipeData);
   }
 
+  async extractRecipeFromPhoto(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const url = `${this.baseURL}/api/recipes/ai/extract-from-photo`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${this.token}`
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "AI extraction failed");
+    }
+
+    return await response.json();
+  }
+
   async updateRecipe(recipeId, recipeData) {
     return this.request("PUT", `/api/recipes/${recipeId}`, recipeData);
   }
@@ -172,6 +193,14 @@ class RecipeAPI {
     }
 
     return await response.json();
+  }
+
+  async uploadImageFromQuery(recipeId, query) {
+    return this.request("POST", `/api/recipes/${recipeId}/image/from-query`, { query });
+  }
+
+  async uploadImageFromPreview(recipeId, previewPath) {
+    return this.request("POST", `/api/recipes/${recipeId}/image/from-preview`, { preview_path: previewPath });
   }
 
   // Category endpoints

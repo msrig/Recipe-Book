@@ -176,6 +176,23 @@
     <script src="/country-utils.js"></script>
     <script src="/admin/js/api-client.js"></script>
     <script>
+        function getImageUrl(imagePath, updatedAt = null) {
+            if (!imagePath) return "";
+
+            let resolved = imagePath;
+            if (!(imagePath.startsWith("http") || imagePath.startsWith("/") || imagePath.startsWith("data:"))) {
+                const prefix = api.baseURL ? `${api.baseURL.replace(/\/$/, "")}/` : "/";
+                resolved = `${prefix}${imagePath}`;
+            }
+
+            if (updatedAt) {
+                const separator = resolved.includes("?") ? "&" : "?";
+                resolved = `${resolved}${separator}v=${encodeURIComponent(updatedAt)}`;
+            }
+
+            return resolved;
+        }
+
         // Initialize dashboard
         async function initDashboard() {
             try {
@@ -217,6 +234,7 @@
                     <table class="table">
                         <thead>
                             <tr>
+                                <th>Фото</th>
                                 <th>Название</th>
                                 <th>Категория</th>
                                 <th>Страна</th>
@@ -227,8 +245,17 @@
                 `;
 
                 recipes.forEach(recipe => {
+                    const imageUrl = getImageUrl(recipe.image, recipe.updated_at);
                     html += `
                         <tr>
+                            <td style="width: 92px;">
+                                <img
+                                    src="${imageUrl}"
+                                    alt="${recipe.title}"
+                                    style="width: 72px; height: 54px; object-fit: cover; border-radius: 8px; border: 1px solid #e4e7ea;"
+                                    onerror="this.style.display='none'; this.insertAdjacentHTML('afterend','<span style=&quot;color:#9aa4af; font-size:0.8rem;&quot;>нет фото</span>');"
+                                >
+                            </td>
                             <td>${recipe.title}</td>
                             <td><span class="badge bg-primary">${recipe.category}</span></td>
                             <td>${recipe.country_origin} ${findCountryFlag(recipe.country_code)}</td>
