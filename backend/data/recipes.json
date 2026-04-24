@@ -2,6 +2,8 @@
   "recipes": [
     {
       "id": "recipe_1",
+      "owner_id": "user_admin",
+      "owner_username": "mama",
       "title": "Турша",
       "titleEn": "Turscha",
       "category": "Preservation",
@@ -24,6 +26,8 @@
     },
     {
       "id": "recipe_2",
+      "owner_id": "user_admin",
+      "owner_username": "mama",
       "title": "Зеленый Борщ",
       "titleEn": "Green Borscht",
       "category": "Soup",
@@ -47,6 +51,8 @@
     },
     {
       "id": "recipe_c30751df",
+      "owner_id": "user_admin",
+      "owner_username": "mama",
       "title": "Пельмени",
       "titleEn": "Pirogi",
       "category": "Main Course",
@@ -67,6 +73,8 @@
     },
     {
       "id": "recipe_1cb71365",
+      "owner_id": "user_admin",
+      "owner_username": "mama",
       "title": "Кимчи",
       "titleEn": "Kimchi",
       "category": "Preservation",
@@ -85,6 +93,8 @@
     },
     {
       "id": "recipe_54676fb9",
+      "owner_id": "user_admin",
+      "owner_username": "mama",
       "title": "Капуста квашеная",
       "titleEn": "Sauerkraut",
       "category": "Preservation",
@@ -103,6 +113,8 @@
     },
     {
       "id": "recipe_00b9fc3b",
+      "owner_id": "user_admin",
+      "owner_username": "mama",
       "title": "Рамен",
       "titleEn": "Ramen",
       "category": "Soup",
@@ -124,6 +136,8 @@
     },
     {
       "id": "recipe_5ff15dd2",
+      "owner_id": "user_admin",
+      "owner_username": "mama",
       "title": "Кофе",
       "titleEn": "Coffee",
       "category": "Beverage",
@@ -141,6 +155,8 @@
     },
     {
       "id": "recipe_7aaee9ad",
+      "owner_id": "user_admin",
+      "owner_username": "mama",
       "title": "Оладьи на кефире",
       "titleEn": "Kefir Pancakes",
       "category": "Breakfast",
@@ -162,6 +178,8 @@
     },
     {
       "id": "recipe_7ac9fc6e",
+      "owner_id": "user_admin",
+      "owner_username": "mama",
       "title": "Яичница-глазунья",
       "titleEn": "Fried Eggs",
       "category": "Breakfast",
@@ -181,6 +199,8 @@
     },
     {
       "id": "recipe_a03a891c",
+      "owner_id": "user_admin",
+      "owner_username": "mama",
       "title": "Морковный кекс",
       "titleEn": "Carrot Loaf Cake",
       "category": "Dessert",
@@ -204,6 +224,8 @@
     },
     {
       "id": "recipe_a4f2fa9c",
+      "owner_id": "user_admin",
+      "owner_username": "mama",
       "title": "Пирог-печенье (Руслан)",
       "titleEn": "Cookie Pie",
       "category": "Dessert",
@@ -226,6 +248,8 @@
     },
     {
       "id": "recipe_41488d27",
+      "owner_id": "user_admin",
+      "owner_username": "mama",
       "title": "Сметанное печенье",
       "titleEn": "Sour Cream Cookies",
       "category": "Dessert",
@@ -244,6 +268,28 @@
       "image": "images/recipe_41488d27.jpg",
       "created_at": "2026-04-24T17:51:18.712155",
       "updated_at": "2026-04-24T17:52:00.631742"
+    },
+    {
+      "id": "recipe_8628205d",
+      "owner_id": "user_380d4f4ca52a",
+      "owner_username": "mike",
+      "title": "Яичница-глазунья",
+      "titleEn": "Sunny-Side Up Eggs",
+      "category": "Breakfast",
+      "country_origin": "Ukraine",
+      "country_code": "UA",
+      "description": "Быстрый и питательный завтрак из яиц с беконом. Жарится на масле до любимой степени готовности.",
+      "ingredients": [
+        "2 яйца",
+        "3 куска бекона",
+        "соль по вкусу",
+        "специи по вкусу",
+        "масло на выбор"
+      ],
+      "preparation": "На разогретую, но не слишком горячую сковороду положить масло, добавить бекон, затем добавить яйца. Посолить по вкусу. Готовить до состояния, когда белок станет белым, а желток будет ещё текучим.",
+      "image": "images/recipe_8628205d.jpg",
+      "created_at": "2026-04-25T00:11:17.108482",
+      "updated_at": "2026-04-25T00:11:17.144865"
     }
   ],
   "categories": [

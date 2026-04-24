@@ -1,19 +1,19 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,500;6..72,650;6..72,800&display=swap");
 
 :root {
-    --primary-color: #2f6b4f;
-    --primary-dark: #214c3a;
-    --secondary-color: #d9a441;
-    --accent-color: #1f2a24;
-    --neutral-color: #f1ebe0;
-    --light-bg: #fbf8f1;
-    --surface-color: #fffdf8;
-    --border-color: #e7ded0;
-    --text-dark: #1f2a24;
-    --text-light: #5e6b62;
-    --danger-color: #c4452d;
-    --warning-color: #d9a441;
-    --shadow-soft: 0 18px 48px rgba(54, 43, 28, 0.12);
+    --primary-color: #2f7d58;
+    --primary-dark: #20583d;
+    --secondary-color: #e9b949;
+    --accent-color: #151713;
+    --neutral-color: #f5faf7;
+    --light-bg: #f5faf7;
+    --surface-color: #ffffff;
+    --border-color: #dfe8e2;
+    --text-dark: #151713;
+    --text-light: #64685f;
+    --danger-color: #d84a33;
+    --warning-color: #e9b949;
+    --shadow-soft: 0 18px 48px rgba(21, 23, 19, 0.1);
 }
 
 * {
@@ -25,9 +25,7 @@
 
 body {
     min-height: 100vh;
-    background:
-        linear-gradient(180deg, rgba(251, 248, 241, 0.98), rgba(247, 244, 236, 0.98)),
-        radial-gradient(circle at 14% 0%, rgba(217, 164, 65, 0.12), transparent 34%);
+    background: linear-gradient(180deg, var(--surface-color) 0%, var(--light-bg) 54%, #f8fbff 100%);
     color: var(--text-dark);
     font-family: "Inter", "Segoe UI", Arial, sans-serif;
 }
@@ -36,7 +34,8 @@ h1,
 h2,
 h3,
 .sidebar-header h2 {
-    font-family: "Playfair Display", Georgia, serif;
+    font-family: "Newsreader", Georgia, serif;
+    font-weight: 650;
 }
 
 .d-flex {
@@ -46,7 +45,7 @@ h3,
 .sidebar {
     width: 280px;
     background:
-        linear-gradient(180deg, rgba(31, 42, 36, 0.98), rgba(33, 76, 58, 0.98)),
+        linear-gradient(180deg, rgba(21, 23, 19, 0.94), rgba(32, 88, 61, 0.9)),
         url("../../images/recipe2.jpg") center/cover;
     background-blend-mode: multiply;
     color: #fffdf8;
@@ -55,7 +54,7 @@ h3,
     position: fixed;
     left: 0;
     top: 0;
-    box-shadow: 10px 0 34px rgba(31, 42, 36, 0.18);
+    box-shadow: 10px 0 34px rgba(21, 23, 19, 0.18);
     z-index: 1000;
 }
 
@@ -124,9 +123,9 @@ h3,
     position: sticky;
     top: 0;
     z-index: 900;
-    background: rgba(255, 253, 248, 0.94);
+    background: rgba(255, 255, 255, 0.92);
     border-bottom: 1px solid var(--border-color);
-    box-shadow: 0 10px 30px rgba(54, 43, 28, 0.08);
+    box-shadow: 0 10px 28px rgba(21, 23, 19, 0.06);
     backdrop-filter: blur(16px);
     padding: 1.15rem 2rem;
     display: flex;
@@ -371,6 +370,16 @@ h3,
     gap: 0.85rem;
 }
 
+.profile-actions {
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.profile-actions .btn {
+    min-height: 46px;
+    padding: 0.72rem 1.05rem;
+}
+
 .form-group {
     margin-bottom: 1.35rem !important;
 }
@@ -384,7 +393,7 @@ h3,
 
 .form-control,
 .input-group .form-control {
-    background: #fffdf8 !important;
+    background: rgba(255, 255, 255, 0.96) !important;
     border: 1px solid var(--border-color) !important;
     border-radius: 8px !important;
     color: var(--text-dark) !important;
@@ -396,7 +405,7 @@ h3,
 .form-control:focus,
 .input-group .form-control:focus {
     border-color: var(--primary-color) !important;
-    box-shadow: 0 0 0 4px rgba(47, 107, 79, 0.14) !important;
+    box-shadow: 0 0 0 4px rgba(47, 125, 88, 0.13) !important;
     outline: none;
 }
 
@@ -420,12 +429,12 @@ textarea.form-control {
 .image-preview img {
     border-radius: 8px !important;
     border: 1px solid var(--border-color);
-    box-shadow: 0 14px 34px rgba(54, 43, 28, 0.12) !important;
+    box-shadow: 0 14px 34px rgba(21, 23, 19, 0.07) !important;
 }
 
 .ingredient-item {
-    background: rgba(47, 107, 79, 0.08) !important;
-    border: 1px solid rgba(47, 107, 79, 0.14);
+    background: rgba(47, 125, 88, 0.08) !important;
+    border: 1px solid rgba(47, 125, 88, 0.14);
     border-radius: 8px !important;
     color: var(--text-dark);
 }
@@ -508,7 +517,7 @@ textarea.form-control {
 
 .login-header {
     background:
-        linear-gradient(90deg, rgba(31, 42, 36, 0.9), rgba(33, 76, 58, 0.78)),
+        linear-gradient(90deg, rgba(21, 23, 19, 0.86), rgba(32, 88, 61, 0.72)),
         url("../../images/recipe3.jpg") center/cover !important;
     color: #fffdf8 !important;
 }

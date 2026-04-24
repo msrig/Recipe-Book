@@ -10,7 +10,7 @@ import urllib.request
 
 from backend.models.recipe import Recipe, RecipeCreate, RecipeUpdate, RecipeDatabase, Country
 from backend.config import settings
-from backend.routes.auth import verify_token
+from backend.routes.auth import UserRecord, ensure_admin_user, find_user_by_username, load_users, verify_token
 from PIL import Image
 import io
 
@@ -48,7 +48,9 @@ def load_recipes() -> RecipeDatabase:
     if settings.recipes_file.exists():
         with open(settings.recipes_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            return RecipeDatabase(**data)
+            db = RecipeDatabase(**data)
+            migrate_recipe_owners(db)
+            return db
     return RecipeDatabase()
 
 def save_recipes(db: RecipeDatabase):
@@ -56,6 +58,26 @@ def save_recipes(db: RecipeDatabase):
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     with open(settings.recipes_file, 'w', encoding='utf-8') as f:
         json.dump(db.model_dump(), f, ensure_ascii=False, indent=2)
+
+def migrate_recipe_owners(db: RecipeDatabase):
+    """Attach legacy recipes to the default admin account."""
+    admin_user = ensure_admin_user()
+    changed = False
+    for recipe in db.recipes:
+        if not recipe.owner_id:
+            recipe.owner_id = admin_user.id
+            recipe.owner_username = admin_user.username
+            changed = True
+        elif not recipe.owner_username:
+            recipe.owner_username = admin_user.username
+            changed = True
+
+    if changed:
+        save_recipes(db)
+
+def require_recipe_owner(recipe: Recipe, user: UserRecord):
+    if recipe.owner_id != user.id:
+        raise HTTPException(status_code=403, detail="You can only change your own recipes")
 
 def optimize_image(file: UploadFile, max_width: int = 800, max_height: int = 500) -> bytes:
     """Optimize uploaded image"""
@@ -135,11 +157,25 @@ def try_generate_image_with_openai(query: str) -> Optional[bytes]:
         return None
 
 @router.get("/")
-async def get_recipes(category: str = None, country: str = None):
+async def get_recipes(
+    category: str = None,
+    country: str = None,
+    username: str = None,
+    mine: bool = False,
+):
     """Get all recipes with optional filters"""
     db = load_recipes()
 
     recipes = db.recipes
+
+    if mine:
+        raise HTTPException(status_code=401, detail="Use /api/recipes/mine/list for your recipes")
+
+    if username:
+        owner = find_user_by_username(load_users(), username)
+        if not owner:
+            raise HTTPException(status_code=404, detail="User not found")
+        recipes = [r for r in recipes if r.owner_id == owner.id]
 
     # Filter by category
     if category:
@@ -154,10 +190,39 @@ async def get_recipes(category: str = None, country: str = None):
         "total": len(recipes)
     }
 
+@router.get("/mine/list")
+async def get_my_recipes(
+    category: str = None,
+    country: str = None,
+    username: UserRecord = Depends(verify_token),
+):
+    """Get recipes owned by the logged-in user."""
+    db = load_recipes()
+    recipes = [r for r in db.recipes if r.owner_id == username.id]
+
+    if category:
+        recipes = [r for r in recipes if r.category.lower() == category.lower()]
+
+    if country:
+        recipes = [r for r in recipes if country.lower() in r.country_origin.lower()]
+
+    return {"recipes": recipes, "total": len(recipes)}
+
+@router.get("/users/{username}")
+async def get_user_recipes(username: str):
+    """Get public recipes for a user profile page."""
+    owner = find_user_by_username(load_users(), username)
+    if not owner:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db = load_recipes()
+    recipes = [r for r in db.recipes if r.owner_id == owner.id]
+    return {"user": {"username": owner.username, "display_name": owner.display_name}, "recipes": recipes, "total": len(recipes)}
+
 @router.post("/ai/polish", response_model=RecipeCreate)
 async def polish_recipe(
     recipe: RecipeCreate,
-    username: str = Depends(verify_token)
+    username: UserRecord = Depends(verify_token)
 ):
     """Proofread recipe text with OpenAI before saving it"""
     try:
@@ -173,7 +238,7 @@ async def polish_recipe(
 @router.post("/ai/extract-from-photo")
 async def extract_recipe_from_photo(
     file: UploadFile = File(...),
-    username: str = Depends(verify_token)
+    username: UserRecord = Depends(verify_token)
 ):
     """Extract recipe draft fields from a handwritten photo."""
     try:
@@ -243,7 +308,7 @@ async def get_recipe(recipe_id: str):
 @router.post("/", response_model=Recipe)
 async def create_recipe(
     recipe: RecipeCreate,
-    username: str = Depends(verify_token)
+    username: UserRecord = Depends(verify_token)
 ):
     """Create a new recipe"""
     db = load_recipes()
@@ -253,6 +318,8 @@ async def create_recipe(
 
     new_recipe = Recipe(
         id=recipe_id,
+        owner_id=username.id,
+        owner_username=username.username,
         **recipe.model_dump(),
         image=f"images/{recipe_id}.jpg",
         created_at=datetime.now().isoformat(),
@@ -268,7 +335,7 @@ async def create_recipe(
 async def update_recipe(
     recipe_id: str,
     recipe: RecipeUpdate,
-    username: str = Depends(verify_token)
+    username: UserRecord = Depends(verify_token)
 ):
     """Update an existing recipe"""
     db = load_recipes()
@@ -278,6 +345,7 @@ async def update_recipe(
         raise HTTPException(status_code=404, detail="Recipe not found")
 
     existing_recipe = db.recipes[recipe_index]
+    require_recipe_owner(existing_recipe, username)
 
     # Update only provided fields
     update_data = recipe.model_dump(exclude_unset=True)
@@ -294,7 +362,7 @@ async def update_recipe(
 @router.delete("/{recipe_id}")
 async def delete_recipe(
     recipe_id: str,
-    username: str = Depends(verify_token)
+    username: UserRecord = Depends(verify_token)
 ):
     """Delete a recipe"""
     db = load_recipes()
@@ -303,6 +371,7 @@ async def delete_recipe(
     if recipe_index is None:
         raise HTTPException(status_code=404, detail="Recipe not found")
 
+    require_recipe_owner(db.recipes[recipe_index], username)
     deleted = db.recipes.pop(recipe_index)
     save_recipes(db)
 
@@ -312,7 +381,7 @@ async def delete_recipe(
 async def upload_recipe_image(
     recipe_id: str,
     file: UploadFile = File(...),
-    username: str = Depends(verify_token)
+    username: UserRecord = Depends(verify_token)
 ):
     """Upload or replace recipe image"""
     db = load_recipes()
@@ -320,6 +389,7 @@ async def upload_recipe_image(
     recipe = next((r for r in db.recipes if r.id == recipe_id), None)
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
+    require_recipe_owner(recipe, username)
 
     # Optimize image
     try:
@@ -352,13 +422,14 @@ async def upload_recipe_image(
 async def upload_recipe_image_from_query(
     recipe_id: str,
     query: str = Body(..., embed=True),
-    username: str = Depends(verify_token)
+    username: UserRecord = Depends(verify_token)
 ):
     """Download a suggested food photo and assign it to recipe."""
     db = load_recipes()
     recipe = next((r for r in db.recipes if r.id == recipe_id), None)
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
+    require_recipe_owner(recipe, username)
 
     normalized_query = (query or "").strip()
     if not normalized_query:
@@ -412,13 +483,14 @@ async def upload_recipe_image_from_query(
 async def upload_recipe_image_from_preview(
     recipe_id: str,
     preview_path: str = Body(..., embed=True),
-    username: str = Depends(verify_token)
+    username: UserRecord = Depends(verify_token)
 ):
     """Assign a previously generated AI preview image to recipe."""
     db = load_recipes()
     recipe = next((r for r in db.recipes if r.id == recipe_id), None)
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
+    require_recipe_owner(recipe, username)
 
     normalized_preview_path = (preview_path or "").strip().replace("\\", "/")
     expected_prefix = "images/ai-previews/"
@@ -470,7 +542,7 @@ async def get_countries():
 @router.post("/categories/")
 async def add_category(
     category: str = Body(..., embed=True),
-    username: str = Depends(verify_token)
+    username: UserRecord = Depends(verify_token)
 ):
     """Add a new category"""
     db = load_recipes()
@@ -486,7 +558,7 @@ async def add_category(
 @router.delete("/categories/{category}")
 async def delete_category(
     category: str,
-    username: str = Depends(verify_token)
+    username: UserRecord = Depends(verify_token)
 ):
     """Delete an unused category"""
     db = load_recipes()

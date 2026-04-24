@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Переход к книге рецептов</title>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const username = params.get("u") || params.get("user") || params.get("owner");
+        const target = username
+            ? `/index.html?user=${encodeURIComponent(username)}`
+            : "/index.html";
+        window.location.replace(target);
+    </script>
+</head>
+<body>
+    <p>Переходим к книге рецептов...</p>
+</body>
+</html>

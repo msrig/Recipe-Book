@@ -129,6 +129,7 @@
                             <div class="meta-row">
                                 <span class="meta-pill country-meta"></span>
                                 <span class="meta-pill category-meta"></span>
+                                <a class="meta-pill owner-meta" href="#"></a>
                             </div>
                             <p class="recipe-description mb-0"></p>
                         </div>
@@ -159,6 +160,14 @@
             setText(page, ".country-meta", `${countryFlag} ${recipe.country_origin}`);
             setText(page, ".category-meta", recipe.category);
             setText(page, ".recipe-description", recipe.description);
+
+            const ownerMeta = page.querySelector(".owner-meta");
+            if (recipe.owner_username) {
+                ownerMeta.textContent = `Автор: ${recipe.owner_username}`;
+                ownerMeta.href = `index.html?user=${encodeURIComponent(recipe.owner_username)}`;
+            } else {
+                ownerMeta.remove();
+            }
 
             const ingredientList = page.querySelector(".ingredient-list");
             (recipe.ingredients || []).forEach(ingredient => {

@@ -6,38 +6,33 @@
     <title>Вход в админку - Рецепты нашей семьи</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <link rel="stylesheet" href="/admin/css/style.css">
     <style>
-        :root {
-            --primary-color: #B51F36;
-            --primary-dark: #7A1F2B;
-            --secondary-color: #C9A227;
-            --accent-color: #17201C;
-            --light-bg: #F7F7F2;
-            --border-color: #D9DDD6;
-        }
-
-        body {
+        body.auth-page {
             background:
-                linear-gradient(90deg, rgba(23, 32, 28, 0.86), rgba(23, 32, 28, 0.68)),
-                url("../images/recipe3.jpg") center/cover;
+                linear-gradient(90deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.76) 48%, rgba(255, 255, 255, 0.14) 100%),
+                url("/images/hero-pickles.jpg") center/cover;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: grid;
+            place-items: center;
+            padding: 1.25rem;
         }
 
         .login-container {
-            background: white;
+            background: var(--surface);
+            border: 1px solid var(--line);
             border-radius: 8px;
-            box-shadow: 0 24px 70px rgba(23, 32, 28, 0.32);
+            box-shadow: var(--shadow);
             overflow: hidden;
             max-width: 500px;
             width: 100%;
         }
 
         .login-header {
-            background: var(--accent-color);
+            background:
+                linear-gradient(90deg, rgba(21, 23, 19, 0.86), rgba(32, 88, 61, 0.72)),
+                url("/images/recipe3.jpg") center/cover;
             color: white;
             padding: 3rem 2rem;
             text-align: center;
@@ -47,12 +42,13 @@
             font-size: 3rem;
             margin-bottom: 1rem;
             display: block;
-            color: var(--secondary-color);
+            color: var(--saffron);
         }
 
         .login-header h1 {
-            font-size: 1.8rem;
-            font-weight: 800;
+            font-family: "Newsreader", Georgia, serif;
+            font-size: 2.15rem;
+            font-weight: 650;
             margin: 0;
         }
 
@@ -82,31 +78,32 @@
             border-radius: 8px;
             padding: 0.75rem 1rem;
             font-size: 1rem;
-            transition: all 0.3s ease;
+            transition: border-color 180ms ease, box-shadow 180ms ease;
         }
 
         .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.18);
+            border-color: rgba(47, 125, 88, 0.62);
+            box-shadow: 0 0 0 4px rgba(47, 125, 88, 0.13);
             outline: none;
         }
 
         .btn-login {
-            background: var(--primary-dark);
+            background: var(--leaf);
             border: none;
             color: white;
             padding: 0.75rem;
-            font-weight: 600;
+            font-weight: 800;
             border-radius: 8px;
             width: 100%;
-            transition: all 0.3s ease;
+            transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
             font-size: 1rem;
             margin-top: 1rem;
         }
 
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 24px rgba(122, 31, 43, 0.28);
+            background: var(--leaf-deep);
+            box-shadow: 0 12px 26px rgba(47, 125, 88, 0.2);
             color: white;
         }
 
@@ -121,7 +118,7 @@
         }
 
         .spinner-border {
-            color: var(--primary-color);
+            color: var(--leaf);
         }
 
         .login-footer {
@@ -129,27 +126,95 @@
             padding: 1.5rem 2.5rem;
             border-top: 1px solid #f0f0f0;
             font-size: 0.85rem;
-            color: #606760;
+            color: var(--muted);
         }
 
         .error-message {
-            color: var(--primary-color);
+            color: var(--tomato);
             font-size: 0.9rem;
             margin-top: 0.5rem;
             display: none;
         }
 
         .form-group.error .form-control {
-            border-color: var(--primary-color);
+            border-color: var(--tomato);
         }
 
         .form-group.error .error-message {
             display: block;
         }
+
+        .auth-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-tab {
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--accent-color);
+            border-radius: 8px;
+            padding: 0.7rem;
+            font-weight: 700;
+        }
+
+        .auth-tab.active {
+            background: var(--ink);
+            color: white;
+        }
+
+        .social-actions {
+            display: grid;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .btn-social {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 700;
+            transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+        }
+
+        .btn-social:hover {
+            background: var(--soft);
+            border-color: rgba(47, 125, 88, 0.34);
+            color: var(--leaf-deep);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 560px) {
+            body.auth-page {
+                padding: 0;
+                place-items: stretch;
+                background:
+                    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.76)),
+                    url("/images/hero-pickles.jpg") center/cover;
+            }
+
+            .login-container {
+                width: 100%;
+                min-height: 100vh;
+                border-radius: 0;
+                border: 0;
+            }
+
+            .login-form {
+                padding: 1.4rem;
+            }
+        }
     </style>
-    <link rel="stylesheet" href="/admin/css/style.css">
 </head>
-<body>
+<body class="auth-page">
     <div class="login-container">
         <div class="login-header">
             <i class="fas fa-lock-open"></i>
@@ -160,7 +225,36 @@
         <div class="login-form">
             <div id="alertContainer"></div>
 
+            <div class="auth-tabs" role="tablist">
+                <button type="button" class="auth-tab active" id="loginTab" onclick="setAuthMode('login')">Вход</button>
+                <button type="button" class="auth-tab" id="registerTab" onclick="setAuthMode('register')">Регистрация</button>
+            </div>
+
             <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group" id="displayNameGroup" style="display: none;">
+                    <label for="displayName" class="form-label">
+                        <i class="fas fa-id-card"></i> Имя для страницы
+                    </label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="displayName"
+                        placeholder="Например: Maria"
+                    >
+                </div>
+
+                <div class="form-group" id="emailGroup" style="display: none;">
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope"></i> Email
+                    </label>
+                    <input
+                        type="email"
+                        class="form-control"
+                        id="email"
+                        placeholder="name@example.com"
+                    >
+                </div>
+
                 <div class="form-group">
                     <label for="username" class="form-label">
                         <i class="fas fa-user"></i> Имя пользователя
@@ -170,6 +264,7 @@
                         class="form-control"
                         id="username"
                         placeholder="Введите имя пользователя"
+                        minlength="3"
                         required
                     >
                     <div class="error-message" id="usernameError"></div>
@@ -184,6 +279,7 @@
                         class="form-control"
                         id="password"
                         placeholder="Введите пароль"
+                        minlength="8"
                         required
                     >
                     <div class="error-message" id="passwordError"></div>
@@ -196,19 +292,46 @@
                 >
                     <i class="fas fa-sign-in-alt"></i> Войти
                 </button>
+                <div class="text-center mt-3">
+                    <a href="/admin/forgot-password.html" class="text-decoration-none" style="color: var(--leaf-deep); font-weight: 800;">
+                        Забыли пароль?
+                    </a>
+                </div>
             </form>
+
+            <div class="social-actions">
+                <a class="btn-social" id="googleLoginLink" href="/api/auth/oauth/google/start">
+                    <i class="fab fa-google"></i> Войти через Google
+                </a>
+                <a class="btn-social" id="facebookLoginLink" href="/api/auth/oauth/facebook/start">
+                    <i class="fab fa-facebook"></i> Войти через Facebook
+                </a>
+            </div>
         </div>
 
         <div class="login-footer">
             <p>
                 <i class="fas fa-info-circle"></i>
-                Для тестирования используйте admin / admin123
+                Каждый пользователь получает свою книгу рецептов
             </p>
         </div>
     </div>
 
     <script src="/admin/js/api-client.js"></script>
     <script>
+        let authMode = "login";
+
+        function setAuthMode(mode) {
+            authMode = mode;
+            document.getElementById("loginTab").classList.toggle("active", mode === "login");
+            document.getElementById("registerTab").classList.toggle("active", mode === "register");
+            document.getElementById("displayNameGroup").style.display = mode === "register" ? "block" : "none";
+            document.getElementById("emailGroup").style.display = mode === "register" ? "block" : "none";
+            document.getElementById("loginBtn").innerHTML = mode === "register"
+                ? '<i class="fas fa-user-plus"></i> Зарегистрироваться'
+                : '<i class="fas fa-sign-in-alt"></i> Войти';
+        }
+
         async function handleLogin(event) {
             event.preventDefault();
 
@@ -225,10 +348,18 @@
             loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Вход...';
 
             try {
-                const response = await api.login(username, password);
+                const response = authMode === "register"
+                    ? await api.register({
+                        username,
+                        password,
+                        display_name: document.getElementById("displayName").value,
+                        email: document.getElementById("email").value || null
+                    })
+                    : await api.login(username, password);
 
                 if (response.access_token) {
                     api.setToken(response.access_token);
+                    api.setUser(response.user);
 
                     // Show success message
                     alertContainer.innerHTML = `
@@ -254,11 +385,29 @@
             }
         }
 
-        // Check if already logged in
+        // Check OAuth callback or existing session
         window.addEventListener("DOMContentLoaded", async () => {
+            document.getElementById("googleLoginLink").href = `${api.baseURL}/api/auth/oauth/google/start`;
+            document.getElementById("facebookLoginLink").href = `${api.baseURL}/api/auth/oauth/facebook/start`;
+
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get("token");
+            if (token) {
+                api.setToken(token);
+                try {
+                    const response = await api.getMe();
+                    api.setUser(response.user);
+                    window.location.href = "/admin/index.html";
+                    return;
+                } catch (error) {
+                    api.clearToken();
+                }
+            }
+
             if (api.token) {
                 try {
-                    await api.verifyToken();
+                    const response = await api.verifyToken();
+                    api.setUser(response.user);
                     // Token is valid, redirect to dashboard
                     window.location.href = "/admin/index.html";
                 } catch (error) {

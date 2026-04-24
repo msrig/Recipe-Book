@@ -34,8 +34,10 @@ class RecipeSearch {
     this.recipeGrid = null;
     this.categoryFilter = null;
     this.countryFilter = null;
+    this.userFilter = null;
     this.currentCategory = null;
     this.currentCountry = null;
+    this.currentUser = null;
   }
 
   // Load recipes from API or fallback to static data
@@ -66,6 +68,7 @@ class RecipeSearch {
     this.recipeGrid = document.getElementById('recipeGrid');
     this.categoryFilter = document.getElementById('categoryFilter');
     this.countryFilter = document.getElementById('countryFilter');
+    this.userFilter = document.getElementById('userFilter');
 
     if (this.searchInput) {
       this.searchInput.addEventListener('input', (e) => this.handleSearch(e));
@@ -87,8 +90,15 @@ class RecipeSearch {
       this.loadCountries();
     }
 
+    if (this.userFilter) {
+      this.userFilter.addEventListener('change', (e) => this.handleUserFilter(e));
+      this.loadUsers();
+    }
+
+    this.applyUrlFilters();
+
     // Render recipes after initialization
-    this.renderRecipes();
+    this.applyFilters();
   }
 
   // Load categories from recipes
@@ -135,6 +145,48 @@ class RecipeSearch {
     });
   }
 
+  // Load recipe owners from recipes
+  loadUsers() {
+    const users = this.originalRecipes
+      .map(recipe => recipe.owner_username)
+      .filter(Boolean);
+    const uniqueUsers = [...new Set(users)].sort((a, b) => a.localeCompare(b));
+
+    const userSelect = document.getElementById('userFilter');
+    while (userSelect.options.length > 1) {
+      userSelect.remove(1);
+    }
+
+    uniqueUsers.forEach(username => {
+      const option = document.createElement('option');
+      option.value = username;
+      option.textContent = username;
+      userSelect.appendChild(option);
+    });
+  }
+
+  applyUrlFilters() {
+    const params = new URLSearchParams(window.location.search);
+    const user = params.get('user') || params.get('owner') || params.get('u');
+    const category = params.get('category');
+    const country = params.get('country');
+
+    if (user && this.userFilter) {
+      this.currentUser = user;
+      this.userFilter.value = user;
+    }
+
+    if (category && this.categoryFilter) {
+      this.currentCategory = category;
+      this.categoryFilter.value = category;
+    }
+
+    if (country && this.countryFilter) {
+      this.currentCountry = country;
+      this.countryFilter.value = country;
+    }
+  }
+
   // Handle category filter
   handleCategoryFilter(event) {
     this.currentCategory = event.target.value;
@@ -144,6 +196,12 @@ class RecipeSearch {
   // Handle country filter
   handleCountryFilter(event) {
     this.currentCountry = event.target.value;
+    this.applyFilters();
+  }
+
+  // Handle user filter
+  handleUserFilter(event) {
+    this.currentUser = event.target.value;
     this.applyFilters();
   }
 
@@ -166,14 +224,21 @@ class RecipeSearch {
         return false;
       }
 
+      // User filter
+      if (this.currentUser && recipe.owner_username !== this.currentUser) {
+        return false;
+      }
+
       // Search filter
       if (searchQuery) {
         const searchText = [
-          recipe.title.toLowerCase(),
-          recipe.titleEn.toLowerCase(),
-          recipe.category.toLowerCase(),
-          recipe.description.toLowerCase(),
-          ...recipe.ingredients.map(ing => ing.toLowerCase()),
+          (recipe.title || '').toLowerCase(),
+          (recipe.titleEn || '').toLowerCase(),
+          (recipe.category || '').toLowerCase(),
+          (recipe.owner_username || '').toLowerCase(),
+          (recipe.country_origin || '').toLowerCase(),
+          (recipe.description || '').toLowerCase(),
+          ...(recipe.ingredients || []).map(ing => ing.toLowerCase()),
           ...(recipe.keywords || [])
         ].join(' ');
 
@@ -233,6 +298,7 @@ class RecipeSearch {
       const category = this.escapeHtml(recipe.category);
       const description = this.escapeHtml(recipe.description);
       const image = this.escapeHtml(this.getImageUrl(recipe.image, recipe.updated_at));
+      const owner = this.escapeHtml(recipe.owner_username || '');
 
       col.innerHTML = `
         <a href="recipe.html?id=${encodeURIComponent(recipe.id)}" class="text-decoration-none">
@@ -250,7 +316,7 @@ class RecipeSearch {
               </div>
               <p class="card-text">${description}</p>
               <div class="recipe-card-footer">
-                <span>${ingredientCount} ингредиентов</span>
+                <span>${owner ? `Автор: ${owner}` : `${ingredientCount} ингредиентов`}</span>
                 <span class="recipe-link-copy">Открыть <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
               </div>
             </div>
@@ -298,7 +364,45 @@ document.addEventListener('DOMContentLoaded', async function() {
   await search.init();
   // Store global reference for resetFilters function
   window.search = search;
+  setupMobileNavAutoHide();
 });
+
+function setupMobileNavAutoHide() {
+  const nav = document.querySelector('.app-nav');
+  if (!nav) return;
+
+  const mobileQuery = window.matchMedia('(max-width: 768px)');
+  let lastScrollY = window.scrollY;
+  let ticking = false;
+
+  function updateNav() {
+    const currentScrollY = window.scrollY;
+    const scrollingDown = currentScrollY > lastScrollY;
+    const nearTop = currentScrollY < 80;
+    const searchFocused = document.activeElement === document.getElementById('searchInput');
+
+    if (!mobileQuery.matches || nearTop || searchFocused) {
+      nav.classList.remove('nav-hidden');
+    } else {
+      nav.classList.toggle('nav-hidden', scrollingDown);
+    }
+
+    lastScrollY = currentScrollY;
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(updateNav);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  mobileQuery.addEventListener('change', () => {
+    nav.classList.remove('nav-hidden');
+    lastScrollY = window.scrollY;
+  });
+}
 
 // Show recipe detail
 function showRecipeDetail(recipeId) {
@@ -368,11 +472,14 @@ function resetFilters() {
   document.getElementById('searchInput').value = '';
   document.getElementById('categoryFilter').value = '';
   document.getElementById('countryFilter').value = '';
+  const userFilter = document.getElementById('userFilter');
+  if (userFilter) userFilter.value = '';
 
   // Trigger filter update
   if (window.search) {
     window.search.currentCategory = null;
     window.search.currentCountry = null;
+    window.search.currentUser = null;
     window.search.applyFilters();
   }
 }

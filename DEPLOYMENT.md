@@ -28,6 +28,18 @@ OPENAI_MODEL=gpt-5.2
 ADMIN_USERNAME=...
 ADMIN_PASSWORD=...
 JWT_SECRET_KEY=...
+PUBLIC_BASE_URL=https://your-domain.example
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+FACEBOOK_CLIENT_ID=...
+FACEBOOK_CLIENT_SECRET=...
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USERNAME=...
+SMTP_PASSWORD=...
+SMTP_FROM_EMAIL=recipes@example.com
+SMTP_USE_TLS=true
+PASSWORD_RESET_EXPIRE_MINUTES=60
 ```
 
 Most hosts set `PORT` automatically. Locally, the Docker image defaults to
@@ -52,3 +64,22 @@ IMAGES_DIR=/data/images
 ```
 
 Mount the volume at `/data`.
+
+## DigitalOcean Droplet
+
+The repo includes `docker-compose.yml` for a single app container. It binds the
+app to `127.0.0.1:8000`, so put Nginx/Caddy in front of it for the public
+subdomain and HTTPS.
+
+1. Copy `.env.production.example` to `.env.production`.
+2. Fill in secrets and set `PUBLIC_BASE_URL` to the real subdomain.
+3. Start the app:
+
+```bash
+docker compose up -d --build
+```
+
+4. Point the reverse proxy to `http://127.0.0.1:8000`.
+
+Persistent recipe data and uploaded images live in the Docker volume
+`recipe-book-data`.

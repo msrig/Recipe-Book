@@ -1,0 +1,18 @@
+services:
+  recipe-book:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      DEBUG: production
+      DATA_DIR: /var/data/backend/data
+      IMAGES_DIR: /var/data/images
+      PORT: 8000
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - recipe-book-data:/var/data
+
+volumes:
+  recipe-book-data:

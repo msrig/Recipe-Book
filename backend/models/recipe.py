@@ -4,6 +4,8 @@ from datetime import datetime
 
 class Recipe(BaseModel):
     id: Optional[str] = None
+    owner_id: Optional[str] = None
+    owner_username: Optional[str] = None
     title: str
     titleEn: str
     category: str

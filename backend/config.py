@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from functools import lru_cache
 from pathlib import Path
 import os
@@ -26,6 +26,22 @@ class Settings(BaseSettings):
     jwt_secret_key: str = "your-secret-key-change-in-production"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60 * 24  # 24 hours
+    public_base_url: str = ""
+
+    # OAuth Settings
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    facebook_client_id: str = ""
+    facebook_client_secret: str = ""
+
+    # Email / password reset settings
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = ""
+    smtp_use_tls: bool = True
+    password_reset_expire_minutes: int = 60
 
     # File paths
     base_dir: Path = Path(__file__).parent.parent
@@ -57,6 +73,12 @@ class Settings(BaseSettings):
             return env_value
 
         return ""
+
+    @model_validator(mode="after")
+    def resolve_storage_paths(self):
+        self.recipes_file = self.data_dir / "recipes.json"
+        self.users_file = self.data_dir / "users.json"
+        return self
 
 @lru_cache()
 def get_settings():

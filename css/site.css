@@ -61,6 +61,7 @@ h3,
     border-bottom: 1px solid var(--line) !important;
     box-shadow: 0 10px 28px rgba(21, 23, 19, 0.06) !important;
     backdrop-filter: blur(18px);
+    transition: transform 180ms ease;
 }
 
 .nav-shell {
@@ -203,6 +204,23 @@ h3,
     margin-top: 1.55rem;
 }
 
+.hero-title {
+    max-width: 720px;
+    margin: 0;
+    color: var(--ink);
+    font-size: 5.4rem;
+    line-height: 0.94;
+    text-wrap: balance;
+}
+
+.hero-subtitle {
+    max-width: 560px;
+    margin: 1.15rem 0 0;
+    color: var(--muted);
+    font-size: 1.06rem;
+    line-height: 1.75;
+}
+
 .btn-main,
 .btn-quiet,
 .filter-reset,
@@ -231,6 +249,10 @@ h3,
     background: rgba(255, 255, 255, 0.82);
     border: 1px solid var(--line);
     color: var(--ink);
+}
+
+.nav-shell > .btn-quiet {
+    justify-self: end;
 }
 
 .btn-main:hover,
@@ -302,6 +324,21 @@ h3,
     padding: 4rem 0 1rem;
 }
 
+.compact-hero {
+    min-height: 390px;
+    align-items: end;
+    background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.82) 48%, rgba(255, 255, 255, 0.18) 100%),
+        url("../images/hero-pickles.jpg") center/cover;
+}
+
+.compact-hero .container {
+    position: relative;
+    z-index: 1;
+    padding-top: 5rem;
+    padding-bottom: 3.4rem;
+}
+
 .loading-note {
     margin: 0;
     color: var(--muted);
@@ -315,6 +352,73 @@ h3,
     background: var(--surface) !important;
     box-shadow: 0 14px 34px rgba(21, 23, 19, 0.07) !important;
     transition: transform 170ms ease, box-shadow 170ms ease, border-color 170ms ease;
+}
+
+.recipe-card-link {
+    display: grid;
+    height: 100%;
+    color: inherit;
+    text-decoration: none;
+}
+
+.recipe-card-image {
+    width: 100%;
+    height: 276px;
+    display: block;
+    object-fit: cover;
+    background: var(--soft);
+    transition: transform 240ms ease;
+}
+
+.recipe-card:hover .recipe-card-image {
+    transform: scale(1.04);
+}
+
+.recipe-card-body {
+    display: grid;
+    gap: 0.8rem;
+    padding: 1.15rem;
+}
+
+.recipe-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.recipe-card-meta span {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--soft);
+    color: var(--leaf-deep);
+    font-size: 0.76rem;
+    font-weight: 800;
+    line-height: 1;
+    padding: 0.46rem 0.58rem;
+}
+
+.recipe-card-body h2 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 1.5rem;
+    line-height: 1.04;
+}
+
+.recipe-card-body p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.62;
+}
+
+.empty-state {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 2rem;
+    box-shadow: 0 14px 34px rgba(21, 23, 19, 0.07);
 }
 
 .recipe-card:hover {
@@ -452,6 +556,13 @@ h3,
     color: white !important;
 }
 
+.footer-layout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
 .footer p {
     margin: 0;
 }
@@ -459,6 +570,11 @@ h3,
 .footer-sub {
     color: rgba(255, 255, 255, 0.68);
     margin-top: 0.3rem !important;
+}
+
+.footer-share-link {
+    flex: 0 0 auto;
+    color: white !important;
 }
 
 .recipe-detail-page {
@@ -680,6 +796,10 @@ input[type="submit"] {
         font-size: 4.3rem;
     }
 
+    .hero-title {
+        font-size: 4.3rem;
+    }
+
     .filters-head h2,
     .section-heading h2 {
         font-size: 2.55rem;
@@ -699,6 +819,10 @@ input[type="submit"] {
 }
 
 @media (max-width: 768px) {
+    .app-nav.nav-hidden {
+        transform: translateY(-100%);
+    }
+
     .nav-shell {
         min-height: 92px;
         grid-template-columns: 1fr;
@@ -723,6 +847,7 @@ input[type="submit"] {
     }
 
     .hero-section h1,
+    .hero-title,
     .recipe-title {
         font-size: 3.05rem !important;
     }
@@ -750,6 +875,10 @@ input[type="submit"] {
         height: 238px;
     }
 
+    .recipe-card-image {
+        height: 238px;
+    }
+
     .recipe-hero {
         min-height: 500px;
     }
@@ -764,6 +893,15 @@ input[type="submit"] {
 
     .recipe-content-section {
         padding-bottom: calc(3rem + env(safe-area-inset-bottom));
+    }
+
+    .footer-layout {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .footer-share-link {
+        width: 100%;
     }
 }
 

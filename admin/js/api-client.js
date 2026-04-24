@@ -41,10 +41,25 @@ class RecipeAPI {
     localStorage.setItem("access_token", token);
   }
 
+  setUser(user) {
+    if (user) {
+      localStorage.setItem("recipe_user", JSON.stringify(user));
+    }
+  }
+
+  getUser() {
+    try {
+      return JSON.parse(localStorage.getItem("recipe_user") || "null");
+    } catch (error) {
+      return null;
+    }
+  }
+
   // Clear token on logout
   clearToken() {
     this.token = null;
     localStorage.removeItem("access_token");
+    localStorage.removeItem("recipe_user");
   }
 
   // Get authorization headers
@@ -113,8 +128,28 @@ class RecipeAPI {
     return this.request("POST", "/api/auth/login", { username, password });
   }
 
+  async register(userData) {
+    return this.request("POST", "/api/auth/register", userData);
+  }
+
   async verifyToken() {
     return this.request("GET", "/api/auth/verify");
+  }
+
+  async getMe() {
+    return this.request("GET", "/api/auth/me");
+  }
+
+  async updateMe(profileData) {
+    return this.request("PATCH", "/api/auth/me", profileData);
+  }
+
+  async requestPasswordReset(email) {
+    return this.request("POST", "/api/auth/password/forgot", { email });
+  }
+
+  async resetPassword(token, password) {
+    return this.request("POST", "/api/auth/password/reset", { token, password });
   }
 
   // Recipe endpoints
@@ -130,6 +165,24 @@ class RecipeAPI {
     }
 
     return this.request("GET", endpoint);
+  }
+
+  async getMyRecipes(category = null, country = null) {
+    let endpoint = "/api/recipes/mine/list";
+    const params = new URLSearchParams();
+
+    if (category) params.append("category", category);
+    if (country) params.append("country", country);
+
+    if (params.toString()) {
+      endpoint += `?${params.toString()}`;
+    }
+
+    return this.request("GET", endpoint);
+  }
+
+  async getUserRecipes(username) {
+    return this.request("GET", `/api/recipes/users/${encodeURIComponent(username)}`);
   }
 
   async getRecipe(recipeId) {

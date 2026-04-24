@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль - Админ-панель</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/css/style.css">
+</head>
+<body>
+    <div class="d-flex">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>
+                    <i class="fas fa-utensils"></i>
+                    Админка
+                </h2>
+            </div>
+
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/index.html">
+                        <i class="fas fa-home"></i>
+                        <span>Главная</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/create-recipe.html">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Новый рецепт</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/admin/profile.html">
+                        <i class="fas fa-user-gear"></i>
+                        <span>Профиль</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="publicRecipesLink" href="/">
+                        <i class="fas fa-book-open"></i>
+                        <span>Моя страница</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Вернуться на сайт</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Выход</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <div class="top-bar">
+                <div class="top-bar-left">
+                    <button type="button" class="toggle-sidebar" onclick="toggleSidebar()" aria-label="Открыть меню">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Профиль</h1>
+                </div>
+                <div class="top-bar-right">
+                    <a class="btn-site" id="topPublicRecipesLink" href="/">
+                        <i class="fas fa-book-open"></i>
+                        <span class="site-link-text">Моя страница</span>
+                    </a>
+                    <span id="usernameLabel" class="username"></span>
+                    <button class="btn-logout" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="content">
+                <div id="alertContainer"></div>
+
+                <form id="profileForm" class="form-card" onsubmit="saveProfile(event)">
+                    <div class="form-section">
+                        <h3>
+                            <i class="fas fa-id-card"></i>
+                            Данные пользователя
+                        </h3>
+
+                        <div class="form-group">
+                            <label for="username" class="form-label">Логин</label>
+                            <input id="username" class="form-control" type="text" readonly>
+                            <small class="text-muted d-block mt-2">Логин используется в публичной ссылке на вашу книгу рецептов.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="displayName" class="form-label">Имя на публичной странице</label>
+                            <input id="displayName" class="form-control" type="text" placeholder="Например: Maria">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email для восстановления пароля</label>
+                            <input id="email" class="form-control" type="email" placeholder="name@example.com">
+                            <small class="text-muted d-block mt-2">
+                                Позже на этот адрес можно будет отправлять ссылку для сброса пароля.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="form-actions profile-actions">
+                        <button type="submit" class="btn btn-primary" id="saveBtn">
+                            <span class="loading" style="display: none;">
+                                <span class="spinner-border spinner-border-sm"></span>
+                                Сохранение...
+                            </span>
+                            <span class="submit-text">
+                                <i class="fas fa-save"></i> Сохранить профиль
+                            </span>
+                        </button>
+                        <a class="btn btn-secondary text-decoration-none" id="profilePublicLink" href="/">
+                            <i class="fas fa-book-open"></i> Открыть мою страницу
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="/admin/js/api-client.js"></script>
+    <script>
+        let currentUser = null;
+
+        function setPublicLinks(username) {
+            const href = `/?user=${encodeURIComponent(username)}`;
+            document.getElementById("publicRecipesLink").href = href;
+            document.getElementById("topPublicRecipesLink").href = href;
+            document.getElementById("profilePublicLink").href = href;
+        }
+
+        async function initProfile() {
+            try {
+                const response = await api.getMe();
+                currentUser = response.user;
+                api.setUser(currentUser);
+
+                document.getElementById("username").value = currentUser.username;
+                document.getElementById("usernameLabel").textContent = currentUser.username;
+                document.getElementById("displayName").value = currentUser.display_name || "";
+                document.getElementById("email").value = currentUser.email || "";
+                setPublicLinks(currentUser.username);
+            } catch (error) {
+                api.clearToken();
+                window.location.href = "/admin/login.html";
+            }
+        }
+
+        async function saveProfile(event) {
+            event.preventDefault();
+
+            const saveBtn = document.getElementById("saveBtn");
+            const loading = saveBtn.querySelector(".loading");
+            const submitText = saveBtn.querySelector(".submit-text");
+            const alertContainer = document.getElementById("alertContainer");
+
+            alertContainer.innerHTML = "";
+            saveBtn.disabled = true;
+            loading.style.display = "inline";
+            submitText.style.display = "none";
+
+            try {
+                const response = await api.updateMe({
+                    display_name: document.getElementById("displayName").value,
+                    email: document.getElementById("email").value || null
+                });
+
+                currentUser = response.user;
+                api.setUser(currentUser);
+                alertContainer.innerHTML = `
+                    <div class="alert alert-success" role="alert">
+                        <i class="fas fa-check-circle"></i> Профиль сохранен.
+                    </div>
+                `;
+            } catch (error) {
+                alertContainer.innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-circle"></i> Ошибка: ${error.message}
+                    </div>
+                `;
+            } finally {
+                saveBtn.disabled = false;
+                loading.style.display = "none";
+                submitText.style.display = "inline";
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector(".sidebar");
+            const isOpen = sidebar.classList.toggle("open");
+            document.body.classList.toggle("admin-menu-open", isOpen);
+        }
+
+        function closeSidebar() {
+            document.querySelector(".sidebar").classList.remove("open");
+            document.body.classList.remove("admin-menu-open");
+        }
+
+        function logout() {
+            api.clearToken();
+            window.location.href = "/admin/login.html";
+        }
+
+        document.addEventListener("click", (event) => {
+            if (event.target === document.body && document.body.classList.contains("admin-menu-open")) {
+                closeSidebar();
+            }
+        });
+
+        document.querySelectorAll(".sidebar .nav-link").forEach(link => {
+            link.addEventListener("click", closeSidebar);
+        });
+
+        window.addEventListener("DOMContentLoaded", initProfile);
+    </script>
+</body>
+</html>

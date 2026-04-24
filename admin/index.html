@@ -45,6 +45,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="/admin/profile.html">
+                        <i class="fas fa-user-gear"></i>
+                        <span>Профиль</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="/">
                         <i class="fas fa-arrow-left"></i>
                         <span>Вернуться на сайт</span>
@@ -73,6 +79,10 @@
                     <a class="btn-site" href="/">
                         <i class="fas fa-arrow-left"></i>
                         <span class="site-link-text">Вернуться на сайт</span>
+                    </a>
+                    <a class="btn-site" id="publicUserPageLink" href="/">
+                        <i class="fas fa-book-open"></i>
+                        <span class="site-link-text">Моя страница</span>
                     </a>
                     <span id="username" class="username">admin</span>
                     <button class="btn-logout" onclick="logout()">
@@ -197,10 +207,17 @@
         async function initDashboard() {
             try {
                 // Check authentication
-                await api.verifyToken();
+                const session = await api.verifyToken();
+                api.setUser(session.user);
+                document.getElementById("username").textContent = session.user.username;
+
+                const publicLink = document.getElementById("publicUserPageLink");
+                if (publicLink) {
+                    publicLink.href = `/?user=${encodeURIComponent(session.user.username)}`;
+                }
 
                 // Load statistics
-                const recipes = await api.getRecipes();
+                const recipes = await api.getMyRecipes();
                 const categories = await api.getCategories();
                 const countries = await api.getCountries();
 
@@ -220,7 +237,7 @@
             document.getElementById("recipesListSection").style.display = "block";
 
             try {
-                const result = await api.getRecipes();
+                const result = await api.getMyRecipes();
                 const recipes = result.recipes;
 
                 if (recipes.length === 0) {
