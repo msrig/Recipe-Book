@@ -1,0 +1,8 @@
+.git
+.codex
+.vscode
+__pycache__/
+*.pyc
+.DS_Store
+backend/.env
+.env

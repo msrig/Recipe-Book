@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
+import shutil
 
 from backend.routes import auth, recipes
 from backend.config import settings
@@ -27,13 +28,45 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(recipes.router)
 
-# Mount static files
 base_dir = Path(__file__).parent.parent
+
+def copy_missing_files(source_dir: Path, target_dir: Path):
+    if not source_dir.exists():
+        return
+
+    for source_path in source_dir.rglob("*"):
+        if not source_path.is_file():
+            continue
+
+        relative_path = source_path.relative_to(source_dir)
+        target_path = target_dir / relative_path
+        if target_path.exists():
+            continue
+
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source_path, target_path)
+
+@app.on_event("startup")
+async def prepare_storage():
+    """Seed mounted storage with bundled recipes and images on first deploy."""
+    settings.data_dir.mkdir(parents=True, exist_ok=True)
+    settings.images_dir.mkdir(parents=True, exist_ok=True)
+
+    bundled_recipes = base_dir / "backend" / "data" / "recipes.json"
+    if bundled_recipes.exists() and not settings.recipes_file.exists():
+        shutil.copy2(bundled_recipes, settings.recipes_file)
+
+    bundled_images = base_dir / "images"
+    if bundled_images.resolve() != settings.images_dir.resolve():
+        copy_missing_files(bundled_images, settings.images_dir)
+
+# Mount static files
 static_dir = base_dir / "admin"
 if static_dir.exists():
     app.mount("/admin", StaticFiles(directory=str(static_dir), html=True), name="admin")
 
-images_dir = base_dir / "images"
+images_dir = settings.images_dir
+images_dir.mkdir(parents=True, exist_ok=True)
 if images_dir.exists():
     app.mount("/images", StaticFiles(directory=str(images_dir)), name="images")
 
@@ -71,4 +104,4 @@ async def static_js_asset(asset_name: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=settings.port)

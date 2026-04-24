@@ -16,6 +16,7 @@ class Settings(BaseSettings):
 
     app_name: str = "Recipe Book Admin API"
     debug: bool = True
+    port: int = 8000
 
     # API Keys
     openai_api_key: str = ""
