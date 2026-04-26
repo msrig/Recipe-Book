@@ -62,6 +62,7 @@ def save_recipes(db: RecipeDatabase):
 def migrate_recipe_owners(db: RecipeDatabase):
     """Attach legacy recipes to the default admin account."""
     admin_user = ensure_admin_user()
+    users = load_users()
     changed = False
     for recipe in db.recipes:
         if not recipe.owner_id:
@@ -69,13 +70,16 @@ def migrate_recipe_owners(db: RecipeDatabase):
             recipe.owner_username = admin_user.username
             changed = True
         elif not recipe.owner_username:
-            recipe.owner_username = admin_user.username
+            owner = next((user for user in users.users if user.id == recipe.owner_id), None)
+            recipe.owner_username = owner.username if owner else admin_user.username
             changed = True
 
     if changed:
         save_recipes(db)
 
 def require_recipe_owner(recipe: Recipe, user: UserRecord):
+    if user.is_super_admin:
+        return
     if recipe.owner_id != user.id:
         raise HTTPException(status_code=403, detail="You can only change your own recipes")
 
@@ -198,7 +202,7 @@ async def get_my_recipes(
 ):
     """Get recipes owned by the logged-in user."""
     db = load_recipes()
-    recipes = [r for r in db.recipes if r.owner_id == username.id]
+    recipes = db.recipes if username.is_super_admin else [r for r in db.recipes if r.owner_id == username.id]
 
     if category:
         recipes = [r for r in recipes if r.category.lower() == category.lower()]
@@ -207,6 +211,26 @@ async def get_my_recipes(
         recipes = [r for r in recipes if country.lower() in r.country_origin.lower()]
 
     return {"recipes": recipes, "total": len(recipes)}
+
+@router.get("/admin/users/{user_id}/recipes")
+async def get_admin_user_recipes(
+    user_id: str,
+    username: UserRecord = Depends(verify_token),
+):
+    """Get recipes for any user. Super admin only."""
+    if not username.is_super_admin:
+        raise HTTPException(status_code=403, detail="Super admin access is required")
+
+    owner = next((user for user in load_users().users if user.id == user_id), None)
+    if not owner:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    recipes = [recipe for recipe in load_recipes().recipes if recipe.owner_id == owner.id]
+    return {
+        "user": {"id": owner.id, "username": owner.username, "display_name": owner.display_name},
+        "recipes": recipes,
+        "total": len(recipes),
+    }
 
 @router.get("/users/{username}")
 async def get_user_recipes(username: str):

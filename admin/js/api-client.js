@@ -182,6 +182,10 @@ class RecipeAPI {
     return this.request("POST", "/api/auth/password/reset", { token, password });
   }
 
+  async getAdminUsers() {
+    return this.request("GET", "/api/auth/admin/users");
+  }
+
   // Recipe endpoints
   async getRecipes(category = null, country = null) {
     let endpoint = "/api/recipes/";
@@ -213,6 +217,10 @@ class RecipeAPI {
 
   async getUserRecipes(username) {
     return this.request("GET", `/api/recipes/users/${encodeURIComponent(username)}`);
+  }
+
+  async getAdminUserRecipes(userId) {
+    return this.request("GET", `/api/recipes/admin/users/${encodeURIComponent(userId)}/recipes`);
   }
 
   async getRecipe(recipeId) {

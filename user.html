@@ -7,9 +7,10 @@
     <script>
         const params = new URLSearchParams(window.location.search);
         const username = params.get("u") || params.get("user") || params.get("owner");
-        const target = username
-            ? `/index.html?user=${encodeURIComponent(username)}`
-            : "/index.html";
+        const targetParams = new URLSearchParams();
+        if (username) targetParams.set("user", username);
+        if (params.get("lang")) targetParams.set("lang", params.get("lang"));
+        const target = `/index.html${targetParams.toString() ? `?${targetParams.toString()}` : ""}`;
         window.location.replace(target);
     </script>
 </head>

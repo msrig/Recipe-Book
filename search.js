@@ -440,6 +440,9 @@ function showRecipeDetail(recipeId) {
   if (!recipe) return;
 
   const countryFlag = window.search.getCountryFlag(recipe.country_code);
+  const title = window.search.displayTitle(recipe);
+  const country = window.search.countryLabel(recipe.country_origin);
+  const category = window.search.categoryLabel(recipe.category);
 
   let ingredientsList = '';
   recipe.ingredients.forEach(ing => {
@@ -454,17 +457,17 @@ function showRecipeDetail(recipeId) {
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">${recipe.title}</h5>
+          <h5 class="modal-title">${title}</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <img src="${recipe.image}" class="img-fluid rounded mb-3" alt="${recipe.title}" style="max-height: 400px; object-fit: cover; width: 100%;">
+          <img src="${recipe.image}" class="img-fluid rounded mb-3" alt="${title}" style="max-height: 400px; object-fit: cover; width: 100%;">
 
           <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
             <span style="font-size: 2rem;">${countryFlag}</span>
             <div>
-          <h6 class="text-muted mb-0">${recipe.country_origin}</h6>
-              <p class="text-muted small mb-0">${window.search.categoryLabel(recipe.category)}</p>
+              <h6 class="text-muted mb-0">${country}</h6>
+              <p class="text-muted small mb-0">${category}</p>
             </div>
           </div>
 

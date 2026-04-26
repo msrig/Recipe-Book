@@ -2,6 +2,7 @@ backend/.env
 backend/data/users.json
 .env.production
 client_secret_*.json
+root@*
 __pycache__/
 *.pyc
 .DS_Store

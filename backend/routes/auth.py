@@ -53,6 +53,7 @@ class UserRecord(BaseModel):
     username: str
     display_name: str
     email: Optional[str] = None
+    is_super_admin: bool = False
     password_hash: Optional[str] = None
     provider: str = "password"
     provider_id: Optional[str] = None
@@ -71,6 +72,7 @@ def public_user(user: UserRecord) -> dict:
         "display_name": user.display_name,
         "email": user.email,
         "provider": user.provider,
+        "is_super_admin": user.is_super_admin,
     }
 
 def load_users() -> UserDatabase:
@@ -197,6 +199,7 @@ def create_password_user(db: UserDatabase, request: RegisterRequest) -> UserReco
         username=username,
         display_name=(request.display_name or username).strip() or username,
         email=email,
+        is_super_admin=False,
         password_hash=password_context.hash(request.password),
         provider="password",
         created_at=now,
@@ -211,6 +214,10 @@ def ensure_admin_user() -> UserRecord:
     username = normalize_username(settings.admin_username)
     existing = find_user_by_username(db, username)
     if existing:
+        if not existing.is_super_admin:
+            existing.is_super_admin = True
+            existing.updated_at = datetime.utcnow().isoformat()
+            save_users(db)
         return existing
 
     now = datetime.utcnow().isoformat()
@@ -218,6 +225,7 @@ def ensure_admin_user() -> UserRecord:
         id="user_admin",
         username=username,
         display_name=username,
+        is_super_admin=True,
         password_hash=password_context.hash(settings.admin_password),
         provider="password",
         created_at=now,
@@ -227,6 +235,20 @@ def ensure_admin_user() -> UserRecord:
     save_users(db)
     return user
 
+def sync_super_admin_status(user: UserRecord) -> UserRecord:
+    admin_username = normalize_username(settings.admin_username)
+    if user.username != admin_username or user.is_super_admin:
+        return user
+
+    db = load_users()
+    existing = find_user_by_id(db, user.id)
+    if existing and not existing.is_super_admin:
+        existing.is_super_admin = True
+        existing.updated_at = datetime.utcnow().isoformat()
+        save_users(db)
+        return existing
+    return user
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.jwt_expire_minutes))
@@ -234,7 +256,12 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 def token_for_user(user: UserRecord) -> str:
-    return create_access_token(data={"sub": user.id, "username": user.username})
+    return create_access_token(data={"sub": user.id, "username": user.username, "is_super_admin": user.is_super_admin})
+
+def require_super_admin(user: UserRecord):
+    ensure_admin_user()
+    if not user.is_super_admin:
+        raise HTTPException(status_code=403, detail="Super admin access is required")
 
 async def verify_token(authorization: str = Header(None)) -> UserRecord:
     if not authorization:
@@ -253,7 +280,7 @@ async def verify_token(authorization: str = Header(None)) -> UserRecord:
         user = find_user_by_id(load_users(), user_id)
         if not user:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-        return user
+        return sync_super_admin_status(user)
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     except ValueError:
@@ -293,6 +320,12 @@ async def verify(user: UserRecord = Depends(verify_token)):
 @router.get("/me")
 async def me(user: UserRecord = Depends(verify_token)):
     return {"user": public_user(user)}
+
+@router.get("/admin/users")
+async def admin_list_users(user: UserRecord = Depends(verify_token)):
+    require_super_admin(user)
+    users = sorted(load_users().users, key=lambda item: item.username)
+    return {"users": [public_user(item) for item in users], "total": len(users)}
 
 @router.patch("/me")
 async def update_me(
@@ -466,6 +499,7 @@ def create_or_link_oauth_user(provider: str, profile: dict) -> UserRecord:
         username=username,
         display_name=(profile.get("name") or username).strip(),
         email=email.lower() if email else None,
+        is_super_admin=False,
         provider=provider,
         provider_id=provider_id,
         created_at=now,

@@ -140,6 +140,54 @@ h3,
     gap: 1rem;
 }
 
+.language-switcher {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.86);
+}
+
+.language-switcher button {
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 38px;
+    min-height: 34px;
+    padding: 0;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    color: var(--text-light) !important;
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.language-switcher button.active {
+    background: var(--primary-color) !important;
+    color: white !important;
+}
+
+.language-switcher button:hover {
+    background: rgba(47, 125, 88, 0.12) !important;
+    color: var(--primary-dark) !important;
+}
+
+.language-switcher button.active:hover {
+    background: var(--primary-dark) !important;
+    color: white !important;
+}
+
+.floating-language-switcher {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 20;
+    box-shadow: 0 12px 28px rgba(21, 23, 19, 0.12);
+}
+
 .top-bar-left h1 {
     margin: 0;
     color: var(--accent-color);
@@ -605,6 +653,17 @@ input[type="submit"] {
     .top-bar-right {
         flex: 0 0 auto;
         gap: 0.6rem;
+    }
+
+    .admin-language-switcher {
+        gap: 0.15rem;
+        padding: 0.15rem;
+    }
+
+    .admin-language-switcher button {
+        min-width: 34px;
+        min-height: 32px;
+        font-size: 0.72rem;
     }
 
     .btn-site {
