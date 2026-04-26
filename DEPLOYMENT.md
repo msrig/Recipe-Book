@@ -67,7 +67,7 @@ Mount the volume at `/data`.
 
 The repo includes `docker-compose.yml` for a single app container. It binds the
 app to `127.0.0.1:8000`, so put Nginx/Caddy in front of it for the public
-subdomain and HTTPS. For Nginx, set `client_max_body_size 20M;` in the `server`
+subdomain and HTTPS. For Nginx, set `client_max_body_size 50M;` in the `server`
 block so recipe images can be uploaded.
 
 1. Copy `.env.production.example` to `.env.production`.

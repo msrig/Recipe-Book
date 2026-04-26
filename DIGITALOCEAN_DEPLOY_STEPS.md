@@ -123,7 +123,7 @@ nano /etc/nginx/sites-available/recipe-book
 ```nginx
 server {
     server_name recipes.yourdomain.com;
-    client_max_body_size 20M;
+    client_max_body_size 50M;
 
     location / {
         proxy_pass http://127.0.0.1:8000;
@@ -228,7 +228,7 @@ nano /etc/nginx/sites-available/recipe-book
 Внутри блока `server { ... }` должна быть строка:
 
 ```nginx
-client_max_body_size 20M;
+client_max_body_size 50M;
 ```
 
 Проверь и перезагрузи Nginx:
