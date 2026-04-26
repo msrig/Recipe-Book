@@ -14,7 +14,7 @@
             <div class="nav-shell">
                 <a class="brand-link" href="index.html" aria-label="Рецепты нашей семьи">
                     <span class="brand-mark"><i class="fas fa-leaf"></i></span>
-                    <span>Рецепты нашей семьи</span>
+                    <span data-i18n="brand.name">Рецепты нашей семьи</span>
                 </a>
 
                 <div class="search-container">
@@ -25,7 +25,15 @@
                         class="search-input"
                         placeholder="Найти блюдо, ингредиент или страну"
                         aria-label="Поиск рецептов"
+                        data-i18n-placeholder="search.placeholder"
+                        data-i18n-aria="search.aria"
                     >
+                </div>
+
+                <div class="language-switcher" aria-label="Language">
+                    <button type="button" data-lang-option="ru" class="active">RU</button>
+                    <button type="button" data-lang-option="en">EN</button>
+                    <button type="button" data-lang-option="uk">UA</button>
                 </div>
             </div>
         </div>
@@ -35,12 +43,12 @@
         <div class="hero-media" aria-hidden="true"></div>
         <div class="container">
             <div class="hero-content">
-                <p class="eyebrow">Сезонная кухня каждый день</p>
-                <h1>Рецепты, которые хочется готовить сегодня</h1>
-                <p class="hero-copy">Соберите ужин по настроению: быстрый суп, яркий салат, домашнюю выпечку или блюдо из другой кухни мира.</p>
+                <p class="eyebrow" data-i18n="hero.eyebrow">Сезонная кухня каждый день</p>
+                <h1 data-i18n="hero.title">Рецепты, которые хочется готовить сегодня</h1>
+                <p class="hero-copy" data-i18n="hero.copy">Соберите ужин по настроению: быстрый суп, яркий салат, домашнюю выпечку или блюдо из другой кухни мира.</p>
                 <div class="hero-actions" aria-label="Быстрые фильтры">
-                    <a href="#recipes" class="btn-main">Смотреть рецепты</a>
-                    <a href="#filters" class="btn-quiet">Подобрать блюдо</a>
+                    <a href="#recipes" class="btn-main" data-i18n="hero.primary">Смотреть рецепты</a>
+                    <a href="#filters" class="btn-quiet" data-i18n="hero.secondary">Подобрать блюдо</a>
                 </div>
             </div>
         </div>
@@ -51,34 +59,34 @@
             <div class="container">
                 <div class="filters-head">
                     <div>
-                        <p class="eyebrow">Фильтры</p>
-                        <h2>Найдите свой вкус</h2>
+                        <p class="eyebrow" data-i18n="filters.eyebrow">Фильтры</p>
+                        <h2 data-i18n="filters.title">Найдите свой вкус</h2>
                     </div>
                     <button class="filter-reset" onclick="resetFilters()">
                         <i class="fas fa-rotate-left" aria-hidden="true"></i>
-                        Сбросить
+                        <span data-i18n="filters.reset">Сбросить</span>
                     </button>
                 </div>
 
                 <div class="filters-container">
                     <label class="filter-group" for="categoryFilter">
-                        <span class="filter-label">Категория</span>
+                        <span class="filter-label" data-i18n="filters.category">Категория</span>
                         <select id="categoryFilter" class="filter-select">
-                            <option value="">Все категории</option>
+                            <option value="" data-i18n="filters.allCategories">Все категории</option>
                         </select>
                     </label>
 
                     <label class="filter-group" for="countryFilter">
-                        <span class="filter-label">Страна</span>
+                        <span class="filter-label" data-i18n="filters.country">Страна</span>
                         <select id="countryFilter" class="filter-select">
-                            <option value="">Все страны</option>
+                            <option value="" data-i18n="filters.allCountries">Все страны</option>
                         </select>
                     </label>
 
                     <label class="filter-group" for="userFilter">
-                        <span class="filter-label">Пользователь</span>
+                        <span class="filter-label" data-i18n="filters.user">Пользователь</span>
                         <select id="userFilter" class="filter-select">
-                            <option value="">Все пользователи</option>
+                            <option value="" data-i18n="filters.allUsers">Все пользователи</option>
                         </select>
                     </label>
                 </div>
@@ -88,12 +96,12 @@
         <section id="recipes" class="recipes-section">
             <div class="container">
                 <div class="section-heading">
-                    <p class="eyebrow">Коллекция</p>
-                    <h2>Свежие идеи для кухни</h2>
+                    <p class="eyebrow" data-i18n="collection.eyebrow">Коллекция</p>
+                    <h2 data-i18n="collection.title">Свежие идеи для кухни</h2>
                 </div>
                 <div id="recipeGrid" class="row g-4">
                     <div class="col-12">
-                        <p class="loading-note">Загружаем рецепты...</p>
+                        <p class="loading-note" data-i18n="loading.recipes">Загружаем рецепты...</p>
                     </div>
                 </div>
             </div>
@@ -104,17 +112,18 @@
         <div class="container">
             <div class="footer-layout">
                 <div>
-                    <p>&copy; 2026 Рецепты нашей семьи</p>
-                    <p class="footer-sub">Домашняя еда, ясные шаги, живые вкусы.</p>
+                    <p>&copy; 2026 <span data-i18n="brand.name">Рецепты нашей семьи</span></p>
+                    <p class="footer-sub" data-i18n="footer.copy">Домашняя еда, ясные шаги, живые вкусы.</p>
                 </div>
                 <a class="btn-main footer-share-link" href="/admin/create-recipe.html">
                     <i class="fas fa-plus" aria-hidden="true"></i>
-                    Поделиться рецептом
+                    <span data-i18n="footer.share">Поделиться рецептом</span>
                 </a>
             </div>
         </div>
     </footer>
 
+    <script src="i18n.js"></script>
     <script src="recipes-data.js"></script>
     <script src="country-utils.js"></script>
     <script src="search.js"></script>

@@ -8,14 +8,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/site.css">
 </head>
-<body class="recipe-detail-page">
+<body class="recipe-detail-page" data-page="recipe-detail">
     <nav class="top-nav">
         <div class="container">
             <div class="nav-shell">
                 <a class="brand-link" href="index.html">
                     <span class="brand-mark"><i class="fas fa-leaf"></i></span>
-                    <span>Рецепты нашей семьи</span>
+                    <span data-i18n="brand.name">Рецепты нашей семьи</span>
                 </a>
+                <div class="language-switcher" aria-label="Language">
+                    <button type="button" data-lang-option="ru" class="active">RU</button>
+                    <button type="button" data-lang-option="en">EN</button>
+                    <button type="button" data-lang-option="uk">UA</button>
+                </div>
             </div>
         </div>
     </nav>
@@ -23,11 +28,12 @@
     <main>
         <div id="recipePage">
             <div class="container py-5">
-                <p class="loading-note">Загружаем рецепт...</p>
+                <p class="loading-note" data-i18n="loading.recipe">Загружаем рецепт...</p>
             </div>
         </div>
     </main>
 
+    <script src="i18n.js"></script>
     <script src="recipes-data.js"></script>
     <script src="country-utils.js"></script>
     <script>
@@ -101,10 +107,10 @@
                         <div class="container">
                             <a href="index.html" class="back-link">
                                 <i class="fas fa-arrow-left"></i>
-                                Назад к рецептам
+                                ${tRecipe("detail.back")}
                             </a>
                             <div class="content-panel">
-                                <p class="text-muted mb-0">Рецепт не найден.</p>
+                                <p class="text-muted mb-0">${tRecipe("detail.notFound")}</p>
                             </div>
                         </div>
                     </section>
@@ -113,7 +119,7 @@
             }
 
             const countryFlag = flagFromCountryCode(recipe.country_code);
-            document.title = `${recipe.title} - Рецепты нашей семьи`;
+            document.title = `${recipeTitle(recipe)} - ${tRecipe("brand.name")}`;
 
             page.innerHTML = `
                 <section class="recipe-hero">
@@ -122,9 +128,9 @@
                         <div class="container">
                             <a href="index.html" class="back-link">
                                 <i class="fas fa-arrow-left"></i>
-                                Назад к рецептам
+                                ${tRecipe("detail.back")}
                             </a>
-                            <p class="eyebrow">Рецепт дня</p>
+                            <p class="eyebrow">${tRecipe("detail.eyebrow")}</p>
                             <h1 class="recipe-title"></h1>
                             <div class="meta-row">
                                 <span class="meta-pill country-meta"></span>
@@ -139,11 +145,11 @@
                     <div class="container">
                         <div class="recipe-layout">
                             <aside class="content-panel ingredients-panel">
-                                <h2 class="section-title">Ингредиенты</h2>
+                                <h2 class="section-title">${tRecipe("detail.ingredients")}</h2>
                                 <ul class="ingredient-list"></ul>
                             </aside>
                             <article class="content-panel">
-                                <h2 class="section-title">Приготовление</h2>
+                                <h2 class="section-title">${tRecipe("detail.preparation")}</h2>
                                 <ol class="preparation-list"></ol>
                                 <p class="preparation-text d-none"></p>
                             </article>
@@ -154,16 +160,16 @@
 
             const image = page.querySelector(".recipe-image");
             image.src = withImageVersion(recipe.image, recipe.updated_at);
-            image.alt = recipe.title;
+            image.alt = recipeTitle(recipe);
 
-            setText(page, ".recipe-title", recipe.title);
-            setText(page, ".country-meta", `${countryFlag} ${recipe.country_origin}`);
-            setText(page, ".category-meta", recipe.category);
+            setText(page, ".recipe-title", recipeTitle(recipe));
+            setText(page, ".country-meta", `${countryFlag} ${recipeCountryLabel(recipe.country_origin)}`);
+            setText(page, ".category-meta", recipeCategoryLabel(recipe.category));
             setText(page, ".recipe-description", recipe.description);
 
             const ownerMeta = page.querySelector(".owner-meta");
             if (recipe.owner_username) {
-                ownerMeta.textContent = `Автор: ${recipe.owner_username}`;
+                ownerMeta.textContent = `${tRecipe("card.author")}: ${recipe.owner_username}`;
                 ownerMeta.href = `index.html?user=${encodeURIComponent(recipe.owner_username)}`;
             } else {
                 ownerMeta.remove();
@@ -198,6 +204,7 @@
             const recipeId = params.get("id");
             const recipe = recipeId ? await loadRecipe(recipeId) : null;
             renderRecipe(recipe);
+            window.addEventListener("recipe-language-change", () => renderRecipe(recipe));
         });
     </script>
 </body>

@@ -96,6 +96,11 @@ class RecipeSearch {
     }
 
     this.applyUrlFilters();
+    window.addEventListener('recipe-language-change', () => {
+      this.loadCategories();
+      this.loadCountries();
+      this.applyFilters();
+    });
 
     // Render recipes after initialization
     this.applyFilters();
@@ -103,7 +108,8 @@ class RecipeSearch {
 
   // Load categories from recipes
   loadCategories() {
-    const categories = [...new Set(this.originalRecipes.map(r => r.category))].sort();
+    const categories = [...new Set(this.originalRecipes.map(r => r.category))]
+      .sort((a, b) => this.categoryLabel(a).localeCompare(this.categoryLabel(b)));
 
     const categorySelect = document.getElementById('categoryFilter');
     // Clear existing options except the first "All categories" option
@@ -114,9 +120,11 @@ class RecipeSearch {
     categories.forEach(cat => {
       const option = document.createElement('option');
       option.value = cat;
-      option.textContent = cat;
+      option.textContent = this.categoryLabel(cat);
       categorySelect.appendChild(option);
     });
+
+    categorySelect.value = this.currentCategory || '';
   }
 
   // Load countries from recipes
@@ -129,7 +137,7 @@ class RecipeSearch {
     // Remove duplicates
     const uniqueCountries = countries.filter((c, i, arr) =>
       arr.findIndex(x => (x.code || x.name) === (c.code || c.name)) === i
-    ).sort((a, b) => a.name.localeCompare(b.name));
+    ).sort((a, b) => this.countryLabel(a.name).localeCompare(this.countryLabel(b.name)));
 
     const countrySelect = document.getElementById('countryFilter');
     // Clear existing options except the first "All countries" option
@@ -140,9 +148,11 @@ class RecipeSearch {
     uniqueCountries.forEach(country => {
       const option = document.createElement('option');
       option.value = country.code || country.name;
-      option.textContent = `${this.getCountryFlag(country.code)} ${country.name}`;
+      option.textContent = `${this.getCountryFlag(country.code)} ${this.countryLabel(country.name)}`;
       countrySelect.appendChild(option);
     });
+
+    countrySelect.value = this.currentCountry || '';
   }
 
   // Load recipe owners from recipes
@@ -163,6 +173,8 @@ class RecipeSearch {
       option.textContent = username;
       userSelect.appendChild(option);
     });
+
+    userSelect.value = this.currentUser || '';
   }
 
   applyUrlFilters() {
@@ -232,10 +244,13 @@ class RecipeSearch {
       // Search filter
       if (searchQuery) {
         const searchText = [
+          this.displayTitle(recipe).toLowerCase(),
           (recipe.title || '').toLowerCase(),
           (recipe.titleEn || '').toLowerCase(),
+          this.categoryLabel(recipe.category).toLowerCase(),
           (recipe.category || '').toLowerCase(),
           (recipe.owner_username || '').toLowerCase(),
+          this.countryLabel(recipe.country_origin).toLowerCase(),
           (recipe.country_origin || '').toLowerCase(),
           (recipe.description || '').toLowerCase(),
           ...(recipe.ingredients || []).map(ing => ing.toLowerCase()),
@@ -263,6 +278,18 @@ class RecipeSearch {
     return flagFromCountryCode(countryCode);
   }
 
+  displayTitle(recipe) {
+    return typeof recipeTitle === 'function' ? recipeTitle(recipe) : (recipe.title || recipe.titleEn || '');
+  }
+
+  categoryLabel(category) {
+    return typeof recipeCategoryLabel === 'function' ? recipeCategoryLabel(category) : (category || '');
+  }
+
+  countryLabel(country) {
+    return typeof recipeCountryLabel === 'function' ? recipeCountryLabel(country) : (country || '');
+  }
+
   // Render recipes based on current filters
   renderRecipes() {
     if (!this.recipeGrid) return;
@@ -275,10 +302,10 @@ class RecipeSearch {
       const noResults = document.createElement('div');
       noResults.className = 'col-12 text-center py-5';
       noResults.innerHTML = `
-        <div class="no-results">
-          <div class="no-results-icon" aria-hidden="true"><i class="fas fa-magnifying-glass"></i></div>
-          <p class="text-muted fs-5">Рецепты не найдены</p>
-          <p class="text-muted small">Попробуйте изменить фильтры или поисковый запрос</p>
+          <div class="no-results">
+            <div class="no-results-icon" aria-hidden="true"><i class="fas fa-magnifying-glass"></i></div>
+          <p class="text-muted fs-5">${tRecipe('empty.title')}</p>
+          <p class="text-muted small">${tRecipe('empty.copy')}</p>
         </div>
       `;
       this.recipeGrid.appendChild(noResults);
@@ -293,9 +320,9 @@ class RecipeSearch {
 
       const countryFlag = this.getCountryFlag(recipe.country_code);
       const ingredientCount = Array.isArray(recipe.ingredients) ? recipe.ingredients.length : 0;
-      const title = this.escapeHtml(recipe.title);
-      const country = this.escapeHtml(recipe.country_origin);
-      const category = this.escapeHtml(recipe.category);
+      const title = this.escapeHtml(this.displayTitle(recipe));
+      const country = this.escapeHtml(this.countryLabel(recipe.country_origin));
+      const category = this.escapeHtml(this.categoryLabel(recipe.category));
       const description = this.escapeHtml(recipe.description);
       const image = this.escapeHtml(this.getImageUrl(recipe.image, recipe.updated_at));
       const owner = this.escapeHtml(recipe.owner_username || '');
@@ -316,8 +343,8 @@ class RecipeSearch {
               </div>
               <p class="card-text">${description}</p>
               <div class="recipe-card-footer">
-                <span>${owner ? `Автор: ${owner}` : `${ingredientCount} ингредиентов`}</span>
-                <span class="recipe-link-copy">Открыть <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
+                <span>${owner ? `${tRecipe('card.author')}: ${owner}` : `${ingredientCount} ${tRecipe('card.ingredients')}`}</span>
+                <span class="recipe-link-copy">${tRecipe('card.open')} <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
               </div>
             </div>
           </div>
@@ -333,7 +360,8 @@ class RecipeSearch {
     const suggestions = new Set();
 
     this.originalRecipes.forEach(recipe => {
-      if (recipe.title.toLowerCase().includes(q)) suggestions.add(recipe.title);
+      const title = this.displayTitle(recipe);
+      if (title.toLowerCase().includes(q)) suggestions.add(title);
       recipe.ingredients.forEach(ing => {
         if (ing.toLowerCase().includes(q)) suggestions.add(ing);
       });
@@ -435,23 +463,23 @@ function showRecipeDetail(recipeId) {
           <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
             <span style="font-size: 2rem;">${countryFlag}</span>
             <div>
-              <h6 class="text-muted mb-0">${recipe.country_origin}</h6>
-              <p class="text-muted small mb-0">${recipe.category}</p>
+          <h6 class="text-muted mb-0">${recipe.country_origin}</h6>
+              <p class="text-muted small mb-0">${window.search.categoryLabel(recipe.category)}</p>
             </div>
           </div>
 
           <p class="text-muted">${recipe.description}</p>
 
-          <h6 class="mt-4 mb-3"><strong>Ингредиенты:</strong></h6>
+          <h6 class="mt-4 mb-3"><strong>${tRecipe('detail.ingredients')}:</strong></h6>
           <ul class="list-group mb-4">
             ${ingredientsList}
           </ul>
 
-          <h6 class="mb-3"><strong>Приготовление:</strong></h6>
+          <h6 class="mb-3"><strong>${tRecipe('detail.preparation')}:</strong></h6>
           <p style="white-space: pre-wrap; line-height: 1.6;">${recipe.preparation}</p>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${tRecipe('detail.close')}</button>
         </div>
       </div>
     </div>

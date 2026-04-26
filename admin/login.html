@@ -303,9 +303,6 @@
                 <a class="btn-social" id="googleLoginLink" href="/api/auth/oauth/google/start">
                     <i class="fab fa-google"></i> Войти через Google
                 </a>
-                <a class="btn-social" id="facebookLoginLink" href="/api/auth/oauth/facebook/start">
-                    <i class="fab fa-facebook"></i> Войти через Facebook
-                </a>
             </div>
         </div>
 
@@ -388,7 +385,6 @@
         // Check OAuth callback or existing session
         window.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("googleLoginLink").href = `${api.baseURL}/api/auth/oauth/google/start`;
-            document.getElementById("facebookLoginLink").href = `${api.baseURL}/api/auth/oauth/facebook/start`;
 
             const params = new URLSearchParams(window.location.search);
             const token = params.get("token");

@@ -392,9 +392,6 @@ def require_oauth_config(provider: str) -> tuple[str, str]:
     if provider == "google":
         client_id = settings.google_client_id
         client_secret = settings.google_client_secret
-    elif provider == "facebook":
-        client_id = settings.facebook_client_id
-        client_secret = settings.facebook_client_secret
     else:
         raise HTTPException(status_code=404, detail="Unknown OAuth provider")
 
@@ -421,15 +418,6 @@ async def oauth_start(provider: str, request: Request):
             "prompt": "select_account",
         }
         url = f"https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}"
-    elif provider == "facebook":
-        params = {
-            "client_id": client_id,
-            "redirect_uri": redirect_uri,
-            "response_type": "code",
-            "scope": "email,public_profile",
-            "state": state,
-        }
-        url = f"https://www.facebook.com/v19.0/dialog/oauth?{urllib.parse.urlencode(params)}"
     else:
         raise HTTPException(status_code=404, detail="Unknown OAuth provider")
 
@@ -510,17 +498,6 @@ async def oauth_callback(provider: str, request: Request, code: str, state: str)
             "redirect_uri": redirect_uri,
         })
         profile = get_json("https://openidconnect.googleapis.com/v1/userinfo", {
-            "access_token": token["access_token"],
-        })
-    elif provider == "facebook":
-        token = get_json("https://graph.facebook.com/v19.0/oauth/access_token", {
-            "client_id": client_id,
-            "client_secret": client_secret,
-            "code": code,
-            "redirect_uri": redirect_uri,
-        })
-        profile = get_json("https://graph.facebook.com/me", {
-            "fields": "id,name,email",
             "access_token": token["access_token"],
         })
     else:

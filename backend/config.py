@@ -31,8 +31,6 @@ class Settings(BaseSettings):
     # OAuth Settings
     google_client_id: str = ""
     google_client_secret: str = ""
-    facebook_client_id: str = ""
-    facebook_client_secret: str = ""
 
     # Email / password reset settings
     smtp_host: str = ""
