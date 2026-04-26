@@ -123,12 +123,15 @@ h3,
 }
 
 .language-switcher button {
+    appearance: none;
+    -webkit-appearance: none;
     min-width: 38px;
     min-height: 34px;
-    border: 0;
-    border-radius: 6px;
-    background: transparent;
-    color: var(--muted);
+    padding: 0;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    color: var(--muted) !important;
     font-size: 0.78rem;
     font-weight: 800;
     line-height: 1;
@@ -136,18 +139,18 @@ h3,
 }
 
 .language-switcher button.active {
-    background: var(--leaf);
-    color: white;
+    background: var(--leaf) !important;
+    color: white !important;
 }
 
 .language-switcher button:hover {
-    background: rgba(47, 125, 88, 0.12);
-    color: var(--leaf-deep);
+    background: rgba(47, 125, 88, 0.12) !important;
+    color: var(--leaf-deep) !important;
 }
 
 .language-switcher button.active:hover {
-    background: var(--leaf-deep);
-    color: white;
+    background: var(--leaf-deep) !important;
+    color: white !important;
 }
 
 .search-icon {
