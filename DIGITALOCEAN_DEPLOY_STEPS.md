@@ -123,6 +123,7 @@ nano /etc/nginx/sites-available/recipe-book
 ```nginx
 server {
     server_name recipes.yourdomain.com;
+    client_max_body_size 20M;
 
     location / {
         proxy_pass http://127.0.0.1:8000;
@@ -212,6 +213,29 @@ PASSWORD_RESET_EXPIRE_MINUTES=60
 
 ```bash
 docker-compose restart
+```
+
+## Если фото не загружается и появляется 413
+
+Ошибка `413 Request Entity Too Large` означает, что Nginx не пропускает большой файл.
+
+Открой конфиг:
+
+```bash
+nano /etc/nginx/sites-available/recipe-book
+```
+
+Внутри блока `server { ... }` должна быть строка:
+
+```nginx
+client_max_body_size 20M;
+```
+
+Проверь и перезагрузи Nginx:
+
+```bash
+nginx -t
+systemctl reload nginx
 ```
 
 ## 11. Проверить сайт
