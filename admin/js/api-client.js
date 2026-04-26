@@ -123,6 +123,36 @@ class RecipeAPI {
     }
   }
 
+  async parseResponse(response, fallbackMessage, url = "") {
+    const responseText = await response.text();
+    let responseData = null;
+
+    if (responseText) {
+      try {
+        responseData = JSON.parse(responseText);
+      } catch (error) {
+        if (response.status === 413) {
+          throw new Error(
+            "Файл слишком большой для сервера. Нужно увеличить client_max_body_size в Nginx или выбрать фото поменьше."
+          );
+        }
+
+        const textPreview = responseText
+          .replace(/<[^>]*>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 160);
+        throw new Error(textPreview || `Сервер вернул не JSON${url ? ` от ${url}` : ""}`);
+      }
+    }
+
+    if (!response.ok) {
+      throw new Error(responseData?.detail || fallbackMessage || `HTTP ${response.status}`);
+    }
+
+    return responseData;
+  }
+
   // Auth endpoints
   async login(username, password) {
     return this.request("POST", "/api/auth/login", { username, password });
@@ -210,12 +240,7 @@ class RecipeAPI {
       body: formData
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "AI extraction failed");
-    }
-
-    return await response.json();
+    return this.parseResponse(response, "AI extraction failed", url);
   }
 
   async updateRecipe(recipeId, recipeData) {
@@ -240,12 +265,7 @@ class RecipeAPI {
       body: formData
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Image upload failed");
-    }
-
-    return await response.json();
+    return this.parseResponse(response, "Image upload failed", url);
   }
 
   async uploadImageFromQuery(recipeId, query) {
