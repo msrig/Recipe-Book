@@ -588,7 +588,7 @@ const ADMIN_PREFIX_LABELS = {
 };
 
 const SUPPORTED_RECIPE_LANGS = ["ru", "en", "uk"];
-const DEFAULT_RECIPE_LANG = "ru";
+const DEFAULT_RECIPE_LANG = "en";
 
 function getRecipeLang() {
   const params = new URLSearchParams(window.location.search);
@@ -598,8 +598,7 @@ function getRecipeLang() {
   const saved = localStorage.getItem("recipe_lang");
   if (SUPPORTED_RECIPE_LANGS.includes(saved)) return saved;
 
-  const browserLang = (navigator.language || "").slice(0, 2).toLowerCase();
-  return SUPPORTED_RECIPE_LANGS.includes(browserLang) ? browserLang : DEFAULT_RECIPE_LANG;
+  return DEFAULT_RECIPE_LANG;
 }
 
 function setRecipeLang(lang) {
