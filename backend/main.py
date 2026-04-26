@@ -94,7 +94,7 @@ async def static_html_page(page_name: str):
 
 @app.get("/{asset_name}.js")
 async def static_js_asset(asset_name: str):
-    if asset_name not in {"recipes-data", "search", "country-utils"}:
+    if asset_name not in {"recipes-data", "search", "country-utils", "i18n"}:
         return {"detail": "Asset not found"}
 
     asset = base_dir / f"{asset_name}.js"
